@@ -1,0 +1,45 @@
+# Use C++11 if available, so we have C99 support for variadic macros
+CXX_STD=CXX11
+
+UNAME := $(shell uname)
+
+PKG_LIBS = ./libuv/.libs/libuv.a
+
+SOURCES = $(wildcard *.cc unix/*.cc)
+OBJECTS = $(SOURCES:.cc=.o) RcppExports.o
+
+ifeq ($(UNAME), SunOS)
+PKG_LIBS += -lkstat -lsendfile -lsocket -lxnet
+OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
+endif
+ifeq ($(UNAME), FreeBSD)
+PKG_LIBS += -lkvm
+endif
+ifeq ($(UNAME), OpenBSD)
+PKG_LIBS += -lkvm
+endif
+ifeq ($(UNAME), Linux)
+OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
+endif
+
+PKG_CPPFLAGS = -I./libuv/include -I.
+
+all: $(SHLIB)
+
+$(SHLIB): libuv/.libs/libuv.a
+
+libuv/Makefile:
+	(cd libuv && sh autogen.sh && ./configure --quiet)
+
+libuv/.libs/libuv.a: libuv/Makefile
+	$(MAKE) --directory=libuv \
+		CC="$(CC)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" \
+		HAVE_DTRACE=0
+
+.PHONY: shlib-clean clean
+
+shlib-clean: clean
+
+clean: libuv/Makefile
+	$(MAKE) --directory=libuv distclean
+	rm -f $(OBJECTS) windows/getmode.o
