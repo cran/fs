@@ -20,6 +20,10 @@
 #' file_copy("foo", "bar", overwrite = TRUE)
 #' file_delete(c("foo", "bar"))
 file_copy <- function(path, new_path, overwrite = FALSE) {
+  # TODO: copy attributes, e.g. cp -p?
+  assert_no_missing(path)
+  assert_no_missing(new_path)
+
   path <- path_expand(path)
   new_path <- path_expand(new_path)
   copyfile_(path, new_path, isTRUE(overwrite))
@@ -48,36 +52,33 @@ file_copy <- function(path, new_path, overwrite = FALSE) {
 #' dir_delete(c("foo", "foo2"))
 #' link_delete(c("loo", "loo2"))
 #' @export
-dir_copy <- function(path, new_path, overwrite = FALSE) {
+dir_copy <- function(path, new_path) {
+  assert_no_missing(path)
+  assert_no_missing(new_path)
+
   path <- path_expand(path)
   new_path <- path_expand(new_path)
 
   stopifnot(all(is_dir(path)))
 
-  to_delete <- isTRUE(overwrite) & dir_exists(new_path)
-  if (any(to_delete)) {
-    dir_delete(new_path[to_delete])
-  }
+  stopifnot(length(path) == length(new_path))
 
-  dirs <- dir_ls(path, type = "directory", recursive = TRUE)
+  for (i in seq_along(path)) {
+    if (isTRUE(unname(is_dir(new_path[[i]])))) {
+      new_path[[i]] <- path(new_path[[i]], path_file(path))
+    }
+    dir_create(new_path[[i]])
 
-  # Remove first path from directories and prepend new path
-  new_dirs <- path(new_path, sub("[^/]*/", "", dirs))
-  dir_create(c(new_path, new_dirs))
+    dirs <- dir_ls(path[[i]], type = "directory", recursive = TRUE, all = TRUE)
+    dir_create(path(new_path[[i]], path_rel(dirs, path[[i]])))
 
-  files <- dir_ls(path, recursive = TRUE,
-    type = c("unknown", "file", "FIFO", "socket", "character_device", "block_device"))
+    files <- dir_ls(path, recursive = TRUE,
+      type = c("unknown", "file", "FIFO", "socket", "character_device", "block_device"), all = TRUE)
+    file_copy(files, path(new_path[[i]], path_rel(files, path[[i]])))
 
-  if (length(files) > 0) {
-    # Remove first path from files and prepend new path
-    new_files <- path(new_path, sub("[^/]*/", "", files))
-    file_copy(files, new_files)
-  }
-
-  links <- dir_ls(path, type = "symlink", recursive = TRUE)
-  if (length(links) > 0) {
-    new_links <- path(new_path, sub("[^/]*/", "", links))
-    link_copy(links, new_links)
+    links <- dir_ls(path, recursive = TRUE,
+      type = "symlink", all = TRUE)
+    link_copy(links, path(new_path[[i]], path_rel(links, path[[i]])))
   }
 
   invisible(path_tidy(new_path))
@@ -86,6 +87,9 @@ dir_copy <- function(path, new_path, overwrite = FALSE) {
 #' @rdname copy
 #' @export
 link_copy <- function(path, new_path, overwrite = FALSE) {
+  assert_no_missing(path)
+  assert_no_missing(new_path)
+
   path <- path_expand(path)
   new_path <- path_expand(new_path)
 

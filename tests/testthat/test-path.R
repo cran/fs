@@ -7,14 +7,14 @@ describe("path", {
   })
 
   it("returns paths UTF-8 encoded", {
-    skip_on_os(c("windows", "solaris"))
+    skip_on_os("solaris")
     expect_equal(Encoding(path("\U4F60\U597D.R")), "UTF-8")
   })
 
-  it("returns empty strings unchanged", {
+  it("returns empty strings for empty inputs", {
     expect_equal(path(""), "")
     expect_equal(path(character()), character())
-    expect_equal(path("foo", character(), "bar"), "foo/bar")
+    expect_equal(path("foo", character(), "bar"), character())
   })
 
   it("propagates NA strings", {
@@ -67,8 +67,12 @@ describe("path_split", {
 })
 
 describe("path_tidy", {
-  it("always expands ~", {
-    expect_equal(path_tidy("~/foo"), gsub("\\\\", "/", path_expand("~/foo")))
+  it("does not expand ~", {
+    expect_equal(path_tidy("~/foo"), "~/foo")
+    expect_equal(path_tidy("~/foo/"), "~/foo")
+    expect_equal(path_tidy("~//foo"), "~/foo")
+    expect_equal(path_tidy("~//foo"), "~/foo")
+    expect_equal(path_tidy("~\\foo\\"), "~/foo")
   })
 
   it("always uses / for delimiting, never multiple / or trailing /", {

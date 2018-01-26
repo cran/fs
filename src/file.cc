@@ -128,8 +128,9 @@ List stat_(CharacterVector path) {
     const char* p = CHAR(STRING_ELT(path, i));
     int res = uv_fs_lstat(uv_default_loop(), &req, p, NULL);
 
-    // If file does not exist mark all results as NA
-    if (res == UV_ENOENT || res == UV_ENOTDIR) {
+    // If file does not exist or the input is NA mark all results as NA
+    if (STRING_ELT(path, i) == NA_STRING || res == UV_ENOENT ||
+        res == UV_ENOTDIR) {
       REAL(VECTOR_ELT(out, 1))[i] = NA_REAL;
       INTEGER(VECTOR_ELT(out, 2))[i] = NA_INTEGER;
       INTEGER(VECTOR_ELT(out, 2))[i] = NA_INTEGER;
@@ -224,15 +225,9 @@ List stat_(CharacterVector path) {
     [i] = (st.st_birthtim.tv_sec + 1e-9 * st.st_birthtim.tv_nsec);
     uv_fs_req_cleanup(&req);
   }
-  Rf_setAttrib(out, R_NamesSymbol, names);
-  Rf_setAttrib(
-      out,
-      R_ClassSymbol,
-      CharacterVector::create("tbl", "tbl_df", "data.frame"));
-  SEXP attr =
-      Rf_setAttrib(out, Rf_install("row.names"), Rf_allocVector(INTSXP, 2));
-  INTEGER(attr)[0] = NA_INTEGER;
-  INTEGER(attr)[1] = -i;
+  out.attr("names") = names;
+  out.attr("class") = CharacterVector::create("tbl", "tbl_df", "data.frame");
+  out.attr("row.names") = IntegerVector::create(NA_INTEGER, -i);
   return out;
 }
 

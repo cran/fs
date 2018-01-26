@@ -58,6 +58,37 @@ describe("dir_ls", {
       expect_equal(dir_ls(type = c("file", "directory", "symlink")), c("dir", "file", "link"))
     })
   })
+  it("works with UTF-8 encoded filenames", {
+    skip_on_os("solaris")
+    with_dir_tree("\U7684\U6D4B\U8BD5\U6587\U4EF6", {
+      file_create("fs\U7684\U6D4B\U8BD5\U6587\U4EF6.docx")
+      link_create(path_abs("\U7684\U6D4B\U8BD5\U6587\U4EF6"), "\U7684\U6D4B")
+
+      expect_equal(dir_ls(type = "file"), "fs\U7684\U6D4B\U8BD5\U6587\U4EF6.docx")
+      expect_equal(dir_ls(type = "directory"), "\U7684\U6D4B\U8BD5\U6587\U4EF6")
+      expect_equal(dir_ls(type = "symlink"), "\U7684\U6D4B")
+      expect_equal(path_file(link_path("\U7684\U6D4B")), "\U7684\U6D4B\U8BD5\U6587\U4EF6")
+    })
+  })
+  it("errors on missing input", {
+    expect_error(dir_ls(NA), class = "invalid_argument")
+  })
+})
+
+describe("dir_map", {
+  it("can find multiple types", {
+    with_dir_tree(list(
+        "file" = "foo",
+        "dir"), {
+      nc <- function(x) nchar(x, keepNA = FALSE)
+      expect_equal(dir_map(type = "file", fun = nc), list(4))
+      expect_equal(dir_map(type = "directory", fun = nc), list(3))
+      expect_equal(dir_map(type = c("file", "directory"), fun = nc), list(3, 4))
+    })
+  })
+  it("errors on missing input", {
+    expect_error(dir_map(NA, fun = identity), class = "invalid_argument")
+  })
 })
 
 describe("dir_walk", {
@@ -87,5 +118,22 @@ describe("dir_walk", {
       dir_walk(type = c("file", "directory", "symlink"), fun = function(p) x <<- c(x, p))
       expect_equal(x, c("dir", "file", "link"))
     })
+  })
+  it("errors on missing input", {
+    expect_error(dir_walk(NA, fun = identity), class = "invalid_argument")
+  })
+})
+
+describe("dir_info", {
+  it("is identical to file_info(dir_ls())", {
+    with_dir_tree(list(
+        "file" = "foo",
+        "dir"), {
+      link_create(path_abs("dir"), "link")
+      expect_identical(dir_info(), file_info(dir_ls()))
+    })
+  })
+  it("errors on missing input", {
+    expect_error(dir_info(NA), class = "invalid_argument")
   })
 })

@@ -29,6 +29,10 @@ describe("file_copy", {
       expect_equal(readLines("bar2"), readLines("bar"))
     })
   })
+  it("errors on missing input", {
+    expect_error(file_copy(NA, "foo2"), class = "invalid_argument")
+    expect_error(file_copy("foo", NA), class = "invalid_argument")
+  })
 })
 
 describe("link_copy", {
@@ -42,6 +46,10 @@ describe("link_copy", {
       expect_true(link_exists("loo2"))
       expect_equal(link_path("loo2"), link_path("loo"))
     })
+  })
+  it("errors on missing input", {
+    expect_error(link_copy(NA, "foo2"), class = "invalid_argument")
+    expect_error(link_copy("foo", NA), class = "invalid_argument")
   })
 })
 
@@ -65,6 +73,17 @@ describe("dir_copy", {
       expect_true(file_exists("foo2/bar"))
     })
   })
+  it("copies directories into other directories", {
+    with_dir_tree(
+      list("foo/bar" = "test"), {
+        dir_create("foo2")
+        expect_equal(dir_copy("foo", "foo2"), "foo2/foo")
+        expect_true(dir_exists("foo"))
+        expect_true(dir_exists("foo2"))
+        expect_true(dir_exists("foo2/foo"))
+        expect_true(file_exists("foo2/foo/bar"))
+    })
+  })
   it("copies nested directories and returns the path", {
     with_dir_tree(
       list("foo/bar/baz" = "test",
@@ -76,6 +95,26 @@ describe("dir_copy", {
       expect_true(file_exists("foo2/bar/baz"))
     })
   })
+  it("copies absolute paths", {
+    with_dir_tree(
+      list("foo/bar/baz" = "test",
+        "foo/baz/qux" = "test2"), {
+      expect_equal(dir_copy(path_abs("foo"), path_abs("foo2")), path_abs("foo2"))
+      expect_true(dir_exists("foo2"))
+      expect_true(dir_exists(path_abs("foo2")))
+    })
+  })
+  it("copies hidden files, directories and links", {
+    with_dir_tree(
+      list("foo/.bar/.baz" = "test"), {
+        link_create(path_abs("foo/.bar"), "foo/.qux")
+      expect_equal(dir_copy("foo", "foo2"), "foo2")
+      expect_true(dir_exists("foo2"))
+      expect_true(dir_exists("foo2/.bar"))
+      expect_true(file_exists("foo2/.bar/.baz"))
+      expect_true(link_exists("foo2/.qux"))
+    })
+  })
   it("copies links and returns the path", {
     with_dir_tree(
       list("foo/bar/baz" = "test"), {
@@ -85,5 +124,9 @@ describe("dir_copy", {
         expect_true(link_exists("foo2/foo"))
         expect_equal(link_path("foo2/foo"), link_path("foo/foo"))
     })
+  })
+  it("errors on missing input", {
+    expect_error(dir_copy(NA, "foo2"), class = "invalid_argument")
+    expect_error(dir_copy("foo", NA), class = "invalid_argument")
   })
 })

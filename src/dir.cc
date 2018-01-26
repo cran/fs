@@ -6,22 +6,28 @@
 #include "CollectorList.h"
 #include "Rcpp.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace Rcpp;
 
 // [[Rcpp::export]]
 void mkdir_(CharacterVector path, mode_t mode) {
-  for (R_xlen_t i = 0; i < Rf_xlength(path); ++i) {
+  R_xlen_t n = Rf_xlength(path);
+  for (R_xlen_t i = 0; i < n; ++i) {
     uv_fs_t req;
     const char* p = CHAR(STRING_ELT(path, i));
 
     int fd = uv_fs_mkdir(uv_default_loop(), &req, p, mode, NULL);
 
-    // We want to fail silently if the directory already exists
-    if (fd != UV_EEXIST) {
-      stop_for_error(req, "Failed to make directory '%s'", p);
+    // We want to fail silently if the directory already exists or if we don't
+    // have permissions to create the directory and it is not the last
+    // directory we are trying to create. (In this case we assume the directory
+    // already exists).
+    if (fd == UV_EEXIST || (fd == UV_EPERM && i < n - 1)) {
+      uv_fs_req_cleanup(&req);
+      continue;
     }
-    uv_fs_req_cleanup(&req);
+    stop_for_error(req, "Failed to make directory '%s'", p);
   }
 }
 
@@ -113,7 +119,7 @@ void dir_map(
     }
     uv_dirent_type_t entry_type = get_dirent_type(name.c_str(), e.type);
     if (file_type == -1 || (((1 << (entry_type)) & file_type) > 0)) {
-      value->push_back(fun(name));
+      value->push_back(fun(asCharacterVector(name)));
     }
 
     if (recurse && entry_type == UV_DIRENT_DIR) {

@@ -51,7 +51,7 @@ NULL
 #' @export
 #' @seealso [base::file.path()]
 path <- function(..., ext = "") {
-  path_tidy(path_(lapply(list(...), as.character), ext))
+  path_tidy(path_(lapply(list(...), function(x) enc2utf8(as.character(x))), ext))
 }
 
 #' @describeIn path_math returns the canonical path, eliminating any symbolic
@@ -72,13 +72,13 @@ path_real <- function(path) {
 path_expand <- function(path) {
   path <- enc2utf8(path)
 
-  new_fs_path(path.expand(path))
+  new_fs_path(expand_(path))
 }
 
 #' Tidy paths
 #'
 #' untidy paths are all different, tidy paths are all the same.
-#' Tidy paths always expand `~`, use `/` to delimit directories, never have
+#' Tidy paths always use `/` to delimit directories, never have
 #' multiple `/` or trailing `/` and have colourised output based on the file
 #' type.
 #'
@@ -86,8 +86,6 @@ path_expand <- function(path) {
 #' @template fs
 #' @export
 path_tidy <- function(path) {
-  path <- path_expand(path)
-
   # convert `\\` to `/`
   path <- gsub("\\", "/", path, fixed = TRUE)
 
@@ -123,7 +121,7 @@ path_join <- function(parts) {
     return(path_tidy(""))
   }
   if (is.character(parts)) {
-    return(path_tidy(path_(parts, "")))
+    return(path_tidy(path_(enc2utf8(parts), "")))
   }
   path_tidy(vapply(parts, path_join, character(1)))
 }
@@ -209,7 +207,7 @@ path_rel <- function(path, start = ".") {
 #' Paths starting from useful directories
 #'
 #' * `path_temp()` starts the path with the session temporary directory
-#' * `path_home()` starts the path with the users home directory
+#' * `path_home()` starts the path with the expanded users home directory
 #'
 #' @param ... Additional paths appended to the temporary directory by `path()`.
 #' @export

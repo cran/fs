@@ -42,6 +42,8 @@
 #' link_delete(link)
 #' link_exists(link)
 file_delete <- function(path) {
+  assert_no_missing(path)
+
   path <- path_expand(path)
   unlink_(path)
 
@@ -51,10 +53,15 @@ file_delete <- function(path) {
 #' @rdname delete
 #' @export
 dir_delete <- function(path) {
-  dirs <- dir_ls(path, type = "directory", recursive = TRUE)
+  assert_no_missing(path)
+
+  path <- path_expand(path)
+
+  dirs <- dir_ls(path, type = "directory", recursive = TRUE, all = TRUE)
   files <- dir_ls(path,
     type = c("unknown", "file", "symlink", "FIFO", "socket", "character_device", "block_device"),
-    recursive = TRUE)
+    recursive = TRUE,
+    all = TRUE)
   file_delete(files)
   rmdir_(rev(c(path, dirs)))
 
