@@ -3,7 +3,6 @@
 \name{path_math}
 \alias{path_math}
 \alias{path_real}
-\alias{path_expand}
 \alias{path_split}
 \alias{path_join}
 \alias{path_abs}
@@ -13,8 +12,6 @@
 \title{Path computations}
 \usage{
 path_real(path)
-
-path_expand(path)
 
 path_split(path)
 
@@ -49,12 +46,10 @@ filesystem.
 \item \code{path_real}: returns the canonical path, eliminating any symbolic
 links.
 
-\item \code{path_expand}: performs tilde expansion on a path, replacing instances of
-\code{~} or \code{~user} with the user's home directory.
-
 \item \code{path_split}: splits paths into parts.
 
-\item \code{path_join}: joins parts together.
+\item \code{path_join}: joins parts together. The inverse of \code{\link[=path_split]{path_split()}}.
+See \code{\link[=path]{path()}} to concatenate vectorized strings into a path.
 
 \item \code{path_abs}: returns a normalized, absolute version of a path.
 
@@ -71,6 +66,7 @@ which can be either a absolute or relative path.
 }}
 
 \examples{
+\dontshow{.old_wd <- setwd(tempdir())}
 # Expand a path
 path_expand("~/bin")
 
@@ -103,4 +99,5 @@ path_common(c("/foo/bar/baz", "/foo/bar/abc", "/foo/xyz/123"))
 # Cleanup
 dir_delete("a")
 link_delete("c")
+\dontshow{setwd(.old_wd)}
 }

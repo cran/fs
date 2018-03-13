@@ -8,6 +8,7 @@
 #' @return The new path as a character vector. For [path_split()], a list of
 #'   character vectors of path components is returned instead.
 #' @examples
+#' \dontshow{.old_wd <- setwd(tempdir())}
 #' # Expand a path
 #' path_expand("~/bin")
 #'
@@ -40,6 +41,7 @@
 #' # Cleanup
 #' dir_delete("a")
 #' link_delete("c")
+#' \dontshow{setwd(.old_wd)}
 NULL
 
 #' Construct path to a file or directory
@@ -49,7 +51,12 @@ NULL
 #'   NA.
 #' @param ext An optional extension to append to the generated path.
 #' @export
-#' @seealso [base::file.path()]
+#' @seealso [path_home()], [path_package()] for functions to construct paths
+#'   relative to the home and package directories respectively.
+#' @examples
+#' path("foo", "bar", "baz", ext = "zip")
+#'
+#' path("foo", letters[1:3], ext = "txt")
 path <- function(..., ext = "") {
   path_tidy(path_(lapply(list(...), function(x) enc2utf8(as.character(x))), ext))
 }
@@ -59,21 +66,14 @@ path <- function(..., ext = "") {
 #' @export
 path_real <- function(path) {
   path <- enc2utf8(path)
+  old <- path_expand(path)
 
-  path_tidy(realize_(path_expand(path)))
+  is_missing <- is.na(path)
+  old[!is_missing] <- realize_(old[!is_missing])
+
+  path_tidy(old)
 }
 
-
-#' @describeIn path_math performs tilde expansion on a path, replacing instances of
-#' `~` or `~user` with the user's home directory.
-#' @export
-# TODO: so far it looks like libuv does not provide a cross platform version of
-# this https://github.com/libuv/libuv/issues/11
-path_expand <- function(path) {
-  path <- enc2utf8(path)
-
-  new_fs_path(expand_(path))
-}
 
 #' Tidy paths
 #'
@@ -86,17 +86,8 @@ path_expand <- function(path) {
 #' @template fs
 #' @export
 path_tidy <- function(path) {
-  # convert `\\` to `/`
-  path <- gsub("\\", "/", path, fixed = TRUE)
-
-  # convert multiple // to single /, as long as they are not at the start (when
-  # they could be UNC paths).
-  path <- gsub("(?<!^)//+", "/", path, perl = TRUE)
-
-  # Remove trailing / from paths (that aren't also the beginning)
-  path <- sub("(?<!^)/$", "", path, perl = TRUE)
-
-  new_fs_path(path)
+  path <- as.character(path)
+  new_fs_path(tidy_(path))
 }
 
 
@@ -113,7 +104,8 @@ path_split <- function(path) {
   strsplit(path, "^(?=/)(?!//)|(?<!^)(?<!^/)/", perl = TRUE)
 }
 
-#' @describeIn path_math joins parts together.
+#' @describeIn path_math joins parts together. The inverse of [path_split()].
+#' See [path()] to concatenate vectorized strings into a path.
 #' @param parts A list of character vectors, corresponding to split paths.
 #' @export
 path_join <- function(parts) {
@@ -133,7 +125,7 @@ path_abs <- function(path) {
   path[is_abs] <- path_norm(path[is_abs])
   cwd <- getwd()
   path[!is_abs] <- path_norm(path(cwd, path[!is_abs]))
-  path
+  path_tidy(path)
 }
 
 #' @describeIn path_math collapses redundant separators and
@@ -143,6 +135,8 @@ path_abs <- function(path) {
 #' [path_norm()].
 #' @export
 path_norm <- function(path) {
+  non_missing <- !is.na(path)
+
   parts <- path_split(path)
   path_norm_one <- function(p) {
     p <- p[p != "."]
@@ -169,7 +163,8 @@ path_norm <- function(path) {
     }
     path_join(p)
   }
-  path_tidy(vapply(parts, path_norm_one, character(1)))
+  parts[non_missing] <- vapply(parts[non_missing], path_norm_one, character(1))
+  path_tidy(parts)
 }
 
 #' @describeIn path_math computes the path relative to the `start` path,
@@ -179,8 +174,8 @@ path_norm <- function(path) {
 # This implementation is partially derived from
 # https://github.com/python/cpython/blob/9c99fd163d5ca9bcc0b7ddd0d1e3b8717a63237c/Lib/posixpath.py#L446
 path_rel <- function(path, start = ".") {
-  start <- path_abs(start)
-  path <- path_abs(path)
+  start <- path_abs(path_expand(start))
+  path <- path_abs(path_expand(path))
 
   path_rel_one <- function(p) {
     common <- path_common(c(start, p))
@@ -201,30 +196,87 @@ path_rel <- function(path, start = ".") {
 
     path_join(rels)
   }
-  path_tidy(vapply(path, path_rel_one, character(1)))
+  if (is.na(start)) {
+    return(path_tidy(NA_character_))
+  }
+
+  is_missing <- is.na(path)
+
+  path[!is_missing] <- vapply(path[!is_missing], path_rel_one, character(1))
+
+  path_tidy(path)
 }
 
-#' Paths starting from useful directories
+#' Finding the User Home Directory
 #'
-#' * `path_temp()` starts the path with the session temporary directory
-#' * `path_home()` starts the path with the expanded users home directory
+#' * `path_expand()` performs tilde expansion on a path, replacing instances of
+#' `~` or `~user` with the user's home directory.
+#' * `path_home()` constructs a path within the expanded users home directory,
+#'   calling it with _no_ arguments can be useful to verify what fs considers the
+#'   home directory.
+#' * `path_expand_r()` and `path_home_r()` are equivalents which always use R's
+#'   definition of the home directory.
+#' @details
+#' `path_expand()` Differs from [path.expand()] in the interpretation of the
+#' home directory of Windows. In particular `path_expand()` uses the path set
+#' in `USERPROFILE`, if unset then `HOMEDRIVE`/`HOMEPATH` is used.
 #'
-#' @param ... Additional paths appended to the temporary directory by `path()`.
+#' In contrast [path.expand()] first checks for `R_USER` then `HOME`, which in the default
+#' configuration of R on Windows are both set to the users document directory, e.g.
+#' `C:\\Users\\username\\Documents`. `path.expand()` also does not support
+#' `~otheruser` syntax on Windows, whereas `path_expand()` does support this
+#' syntax on all systems.
+#'
+#' This definition makes fs more consistent with the definition of home directory used
+#' on Windows in other languages, such as
+#' [python](https://docs.python.org/3/library/os.path.html#os.path.expanduser)
+#' and [rust](https://doc.rust-lang.org/std/env/fn.home_dir.html#windows).
+#' This is also more compatible with external tools such as git and ssh, both of
+#' which put user-level files in `USERPROFILE` by default. It also allows you
+#' to write portable paths, such as `~/Desktop` that points to the Desktop
+#' location on Windows, MacOS and (most) Linux systems.
+#'
+#' Users can set the `R_FS_HOME` environment variable to override the
+#' definitions on any platform.
+#' @seealso [R for Windows FAQ - 2.14](https://cran.r-project.org/bin/windows/base/rw-FAQ.html#What-are-HOME-and-working-directories_003f)
+#' for behavior of [base::path.expand()].
+#' @param ... Additional paths appended to the home directory by `path()`.
+#' @inheritParams path_math
 #' @export
 #' @examples
+#' # You can use `path_home()` without arguments to see what is being used as
+#' # the home diretory.
 #' path_home()
 #' path_home("R")
 #'
-#' path_temp()
-#' path_temp("does-not-exist")
-path_home <- function(...) {
-  path(path_expand("~"), ...)
+#' # This will likely differ from the above on Windows
+#' path_home_r()
+path_expand <- function(path) {
+  path <- enc2utf8(path)
+
+  # We use the windows implementation if R_FS_HOME is set or if on windows
+  path_tidy(expand_(path, Sys.getenv("R_FS_HOME") != "" || is_windows()))
 }
 
+#' @rdname path_expand
 #' @export
-#' @rdname path_home
-path_temp <- function(...) {
-  path(tempdir(), ...)
+path_expand_r <- function(path) {
+  path <- enc2utf8(path)
+
+  # Unconditionally use R_ExpandFileName
+  path_tidy(expand_(path, FALSE))
+}
+
+#' @rdname path_expand
+#' @export
+path_home <- function(...) {
+  path(path_expand("~/"), ...)
+}
+
+#' @rdname path_expand
+#' @export
+path_home_r <- function(...) {
+  path(path_expand_r("~/"), ...)
 }
 
 #' Manipulate file paths
@@ -253,13 +305,17 @@ path_temp <- function(...) {
 #' path_ext_set(path_ext_remove("file.tar.gz"), "zip")
 #' @export
 path_file <- function(path) {
-  path_tidy(basename(path))
+  is_missing <- is.na(path)
+  path[!is_missing] <- basename(path[!is_missing])
+  path_tidy(path)
 }
 
 #' @rdname path_file
 #' @export
 path_dir <- function(path) {
-  path_tidy(dirname(path))
+  is_missing <- is.na(path)
+  path[!is_missing] <- dirname(path[!is_missing])
+  path_tidy(path)
 }
 
 #' @rdname path_file
@@ -292,6 +348,13 @@ path_ext_set <- function(path, ext) {
 #' @describeIn path_math finds the common parts of two (or more) paths.
 #' @export
 path_common <- function(path) {
+
+  is_missing <- is.na(path)
+
+  if (any(is_missing)) {
+    return(path_tidy(NA))
+  }
+
   is_abs <- is_absolute_path(path)
 
   # We must either have all absolute paths, or all relative paths.
@@ -323,8 +386,8 @@ path_common <- function(path) {
 #' Filter paths
 #'
 #' @template fs
-#' @param glob,regexp Either a glob (e.g. `*.csv`) or a regular
-#'   expression (e.g. `[.]csv$`) passed on to [grep()] to filter paths.
+#' @param glob A wildcard aka globbing pattern (e.g. `*.csv`) passed on to [grep()] to filter paths.
+#' @param regexp A regular expression (e.g. `[.]csv$`) passed on to [grep()] to filter paths.
 #' @param invert If `TRUE` return files which do _not_ match
 #' @param ... Additional arguments passed to [grep].
 #' @export

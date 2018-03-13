@@ -192,16 +192,26 @@ List stat_(CharacterVector path) {
     SET_STRING_ELT(VECTOR_ELT(out, 5), i, NA_STRING);
 #else
     passwd* pwd;
-    pwd = getpwuid(st.st_uid);
-    SET_STRING_ELT(VECTOR_ELT(out, 5), i, Rf_mkCharCE(pwd->pw_name, CE_UTF8));
+    if ((pwd = getpwuid(st.st_uid)) != nullptr) {
+      SET_STRING_ELT(VECTOR_ELT(out, 5), i, Rf_mkCharCE(pwd->pw_name, CE_UTF8));
+    } else {
+      char buf[20];
+      sprintf(buf, "%" PRIu64, st.st_uid);
+      SET_STRING_ELT(VECTOR_ELT(out, 5), i, Rf_mkCharCE(buf, CE_UTF8));
+    }
 #endif
 
 #ifdef __WIN32
     SET_STRING_ELT(VECTOR_ELT(out, 6), i, NA_STRING);
 #else
     group* grp;
-    grp = getgrgid(st.st_gid);
-    SET_STRING_ELT(VECTOR_ELT(out, 6), i, Rf_mkCharCE(grp->gr_name, CE_UTF8));
+    if ((grp = getgrgid(st.st_gid)) != nullptr) {
+      SET_STRING_ELT(VECTOR_ELT(out, 6), i, Rf_mkCharCE(grp->gr_name, CE_UTF8));
+    } else {
+      char buf[20];
+      sprintf(buf, "%" PRIu64, st.st_gid);
+      SET_STRING_ELT(VECTOR_ELT(out, 6), i, Rf_mkCharCE(buf, CE_UTF8));
+    }
 #endif
 
     REAL(VECTOR_ELT(out, 7))[i] = st.st_rdev;
@@ -247,11 +257,12 @@ LogicalVector access_(CharacterVector path, int mode) {
 }
 
 // [[Rcpp::export]]
-void chmod_(CharacterVector path, mode_t mode) {
+void chmod_(CharacterVector path, IntegerVector mode) {
   for (R_xlen_t i = 0; i < Rf_xlength(path); ++i) {
     uv_fs_t req;
     const char* p = CHAR(STRING_ELT(path, i));
-    uv_fs_chmod(uv_default_loop(), &req, p, mode, NULL);
+    mode_t m = INTEGER(mode)[i];
+    uv_fs_chmod(uv_default_loop(), &req, p, m, NULL);
     stop_for_error(req, "Failed to chmod '%s'", p);
     uv_fs_req_cleanup(&req);
   }

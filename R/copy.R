@@ -14,25 +14,13 @@
 #' @name copy
 #' @export
 #' @examples
+#' \dontshow{.old_wd <- setwd(tempdir())}
 #' file_create("foo")
 #' file_copy("foo", "bar")
 #' try(file_copy("foo", "bar"))
 #' file_copy("foo", "bar", overwrite = TRUE)
 #' file_delete(c("foo", "bar"))
-file_copy <- function(path, new_path, overwrite = FALSE) {
-  # TODO: copy attributes, e.g. cp -p?
-  assert_no_missing(path)
-  assert_no_missing(new_path)
-
-  path <- path_expand(path)
-  new_path <- path_expand(new_path)
-  copyfile_(path, new_path, isTRUE(overwrite))
-
-  invisible(path_tidy(new_path))
-}
-
-#' @rdname copy
-#' @examples
+#'
 #' dir_create("foo")
 #' # Create a directory and put a few files in it
 #' files <- file_create(c("foo/bar", "foo/baz"))
@@ -51,16 +39,23 @@ file_copy <- function(path, new_path, overwrite = FALSE) {
 #' # Cleanup
 #' dir_delete(c("foo", "foo2"))
 #' link_delete(c("loo", "loo2"))
+#' \dontshow{setwd(.old_wd)}
+file_copy <- function(path, new_path, overwrite = FALSE) {
+  # TODO: copy attributes, e.g. cp -p?
+  assert_no_missing(path)
+  assert_no_missing(new_path)
+
+  copyfile_(path_expand(path), path_expand(new_path), isTRUE(overwrite))
+
+  invisible(path_tidy(new_path))
+}
+
+#' @rdname copy
 #' @export
 dir_copy <- function(path, new_path) {
   assert_no_missing(path)
   assert_no_missing(new_path)
-
-  path <- path_expand(path)
-  new_path <- path_expand(new_path)
-
   stopifnot(all(is_dir(path)))
-
   stopifnot(length(path) == length(new_path))
 
   for (i in seq_along(path)) {
@@ -89,16 +84,15 @@ dir_copy <- function(path, new_path) {
 link_copy <- function(path, new_path, overwrite = FALSE) {
   assert_no_missing(path)
   assert_no_missing(new_path)
-
-  path <- path_expand(path)
-  new_path <- path_expand(new_path)
-
   stopifnot(all(is_link(path)))
 
-  to_delete <- isTRUE(overwrite) & link_exists(new_path)
+  old <- path_expand(path)
+  new <- path_expand(new_path)
+
+  to_delete <- isTRUE(overwrite) & link_exists(new)
   if (any(to_delete)) {
-    link_delete(new_path[to_delete])
+    link_delete(new[to_delete])
   }
 
-  invisible(link_create(link_path(path), new_path))
+  invisible(link_create(link_path(old), new))
 }

@@ -78,6 +78,21 @@ if (!is_windows()) {
       it("errors on missing input", {
         expect_error(file_chmod(NA, "u+x"), class = "invalid_argument")
       })
+
+      it("is vectorized over files and permissions", {
+        file_create("foo/baz")
+        files <- c("foo/bar", "foo/baz")
+        expect_equal(file_chmod(files, "000"), files)
+        expect_true(all(file_info(files)$permissions == c("000", "000")))
+
+        expect_equal(file_chmod(files, "644"), files)
+        expect_true(all(file_info(files)$permissions == c("644", "644")))
+
+        expect_equal(file_chmod(files, c("u+x", "o+x")), files)
+        expect_true(all(file_info(files)$permissions == c("744", "645")))
+
+        expect_error(file_chmod(files, c("u+x", "o+x", "g+x")), class = "invalid_argument")
+      })
     })
   })
 }
@@ -104,9 +119,9 @@ describe("file_copy", {
 })
 
 describe("file_chown", {
-  skip("need elevated permissions to change uid")
   with_dir_tree(list("foo/bar" = "test"), {
     it("changes the ownership of a file, returns the input path", {
+      skip("need elevated permissions to change uid")
 
       # Make everyone have write access, so we can delete this after changing ownership
       file_chmod("foo/bar", "a+w")
@@ -116,7 +131,7 @@ describe("file_chown", {
       expect_true(file_info("foo/bar")$user_id == 0)
     })
     it("errors on missing input", {
-      expect_error(file_copy(NA, user_id = 0), class = "invalid_argument")
+      expect_error(file_chown(NA, user_id = 0), class = "invalid_argument")
     })
   })
 })

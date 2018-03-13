@@ -28,11 +28,9 @@ the filenames.}
 \item{type}{File type(s) to return, one or more of "any", "file", "directory",
 "symlink", "FIFO", "socket", "character_device" or "block_device".}
 
-\item{glob}{Either a glob (e.g. \code{*.csv}) or a regular
-expression (e.g. \code{[.]csv$}) passed on to \code{\link[=grep]{grep()}} to filter paths.}
+\item{glob}{A wildcard aka globbing pattern (e.g. \code{*.csv}) passed on to \code{\link[=grep]{grep()}} to filter paths.}
 
-\item{regexp}{Either a glob (e.g. \code{*.csv}) or a regular
-expression (e.g. \code{[.]csv$}) passed on to \code{\link[=grep]{grep()}} to filter paths.}
+\item{regexp}{A regular expression (e.g. \code{[.]csv$}) passed on to \code{\link[=grep]{grep()}} to filter paths.}
 
 \item{invert}{If \code{TRUE} return files which do \emph{not} match}
 
@@ -53,15 +51,21 @@ the result in a list.
 \code{dir_walk()} calls \code{fun} for its side-effect and returns the input \code{path}.
 }
 \examples{
+\dontshow{.old_wd <- setwd(tempdir())}
 dir_ls(R.home("share"), type = "directory")
 
+# Create a shorter link
 link_create(system.file(package = "base"), "base")
 
 dir_ls("base", recursive = TRUE, glob = "*.R")
+
 dir_map("base", identity)
+
 dir_walk("base", str)
+
 dir_info("base")
 
 # Cleanup
 link_delete("base")
+\dontshow{setwd(.old_wd)}
 }

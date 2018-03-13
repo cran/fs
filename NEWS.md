@@ -1,3 +1,38 @@
+# fs 1.2.0
+
+## Breaking changes
+
+* `path_expand()` and `path_home()` now use `USERPROFILE` or
+  `HOMEDRIVE`/`HOMEPATH` as the user home directory on Windows. This differs
+  from the definition used in `path.expand()` but is consistent with
+  definitions from other programming environments such as python and rust. This
+  is also more compatible with external tools such as git and ssh, both of
+  which put user-level files in `USERPROFILE` by default. To mimic R's (and
+  previous) behavior there are functions `path_expand_r()` and `path_home_r()`.
+
+* Handling missing values are more consistent. In general `is_*` functions
+  always return `FALSE` for missing values, `path_*` functions always propagate
+  NA values (NA inputs become NA outputs) and `dir_*` `file_*` and `link_*`
+  functions error with NA inputs.
+
+* fs functions now preserve tildes in their outputs. Previously paths were
+  always returned with tildes expanded. Users can use `path_expand()` to expand
+  tildes if desired.
+
+## Bugfixes
+
+* Fix crash when a files user or group id did not exist in the respective
+  database (#84, #58)
+* Fix home expansion on systems without readline (#60).
+* Fix propagation of NA values in `path_norm()` (#63).
+
+## Features
+
+* `file_chmod()` is now vectorized over both of its arguments (#71).
+* `link_create()` now fails silently if an identical link already exists (#77).
+* `path_package()` function created as an analog to `system.file()` which
+  always fails if the package or file does not exist (#75)
+
 # fs 1.1.0
 
 ## Breaking changes

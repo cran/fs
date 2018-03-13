@@ -27,6 +27,7 @@
 #' @seealso [dir_info()] to display file information for files in a given
 #'   directory.
 #' @examples
+#' \dontshow{.old_wd <- setwd(tempdir())}
 #' write.csv(mtcars, "mtcars.csv")
 #' file_info("mtcars.csv")
 #'
@@ -36,13 +37,14 @@
 #'
 #' # Cleanup
 #' file_delete("mtcars.csv")
+#' \dontshow{setwd(.old_wd)}
 #' @export
 file_info <- function(path) {
-  path <- path_expand(path)
+  old <- path_expand(path)
 
-  res <- stat_(path)
+  res <- stat_(old)
 
-  res$path <- path_tidy(res$path)
+  res$path <- path_tidy(path)
 
   res$type <- factor(res$type, levels = file_types, labels = names(file_types))
 
@@ -71,28 +73,35 @@ file_types <- c(
 #' @param mode A character representation of the mode, in either hexidecimal or symbolic format.
 #' @export
 #' @examples
-#' \dontshow{fs:::pkgdown_tmp("/tmp/filedd4670e2bc60")}
-#' x <- file_create(file_temp(), "000")
-#' file_chmod(x, "777")
-#' file_info(x)$permissions
+#' \dontshow{.old_wd <- setwd(tempdir())}
+#' file_create("foo", "000")
+#' file_chmod("foo", "777")
+#' file_info("foo")$permissions
 #'
-#' file_chmod(x, "u-x")
-#' file_info(x)$permissions
+#' file_chmod("foo", "u-x")
+#' file_info("foo")$permissions
 #'
-#' file_chmod(x, "a-wrx")
-#' file_info(x)$permissions
+#' file_chmod("foo", "a-wrx")
+#' file_info("foo")$permissions
 #'
-#' file_chmod(x, "u+wr")
-#' file_info(x)$permissions
+#' file_chmod("foo", "u+wr")
+#' file_info("foo")$permissions
+#'
+#' # It is also vectorized
+#' files <- c("foo", file_create("bar", "000"))
+#' file_chmod(files, "a+rwx")
+#' file_info(files)$permissions
+#'
+#' file_chmod(files, c("644", "600"))
+#' file_info(files)$permissions
+#' \dontshow{setwd(.old_wd)}
 file_chmod <- function(path, mode) {
   assert_no_missing(path)
-
-  path <- path_expand(path)
-
-  stopifnot(length(mode) == 1)
   mode <- as_fs_perms(mode, mode = file_info(path)$permissions)
 
-  chmod_(path, mode)
+  old <- path_expand(path)
+
+  chmod_(old, mode)
 
   invisible(path_tidy(path))
 }
@@ -107,7 +116,7 @@ file_chmod <- function(path, mode) {
 file_chown <- function(path, user_id = NULL, group_id = NULL) {
   assert_no_missing(path)
 
-  path <- path_expand(path)
+  old <- path_expand(path)
 
   if (is.null(user_id)) {
     user_id <- -1
@@ -125,10 +134,7 @@ file_chown <- function(path, user_id = NULL, group_id = NULL) {
     user_id <- getgrnam_(user_id)
   }
 
-  # TODO: use [getpwnam(3)](https://linux.die.net/man/3/getpwnam),
-  # [getgrnam(3)](https://linux.die.net/man/3/getgrnam) to support specifying
-  # uid / gid as names in addition to integers.
-  chown_(path, user_id, group_id)
+  chown_(old, user_id, group_id)
 
   invisible(path_tidy(path))
 }
@@ -143,7 +149,7 @@ file_chown <- function(path, user_id = NULL, group_id = NULL) {
 file_show <- function(path = ".", browser = getOption("browser")) {
   assert_no_missing(path)
 
-  path <- path_expand(path)
+  old <- path_expand(path)
 
   for (p in path) {
     browseURL(p)
@@ -165,28 +171,30 @@ file_show <- function(path = ".", browser = getOption("browser")) {
 #'   Should either be the same length as `path`, or a single directory.
 #' @return The new path (invisibly).
 #' @examples
+#' \dontshow{.old_wd <- setwd(tempdir())}
 #' file_create("foo")
 #' file_move("foo", "bar")
 #' file_exists(c("foo", "bar"))
 #' file_delete("bar")
+#' \dontshow{setwd(.old_wd)}
 #' @export
 file_move <- function(path, new_path) {
   assert_no_missing(path)
   assert_no_missing(new_path)
 
-  path <- path_expand(path)
-  new_path <- path_expand(new_path)
+  old <- path_expand(path)
+  new <- path_expand(new_path)
 
-  is_directory <- file_exists(new_path) && is_dir(new_path)
+  is_directory <- file_exists(new) && is_dir(new)
 
-  if (length(new_path) == 1 && is_directory[[1]]) {
-    new_path <- rep(new_path, length(path))
+  if (length(new) == 1 && is_directory[[1]]) {
+    new <- rep(new, length(path))
   }
-  stopifnot(length(path) == length(new_path))
+  stopifnot(length(old) == length(new))
 
-  new_path[is_directory] <- path(new_path[is_directory], basename(path))
+  new[is_directory] <- path(new[is_directory], basename(new))
 
-  move_(path, new_path)
+  move_(old, new)
 
   invisible(path_tidy(new_path))
 }

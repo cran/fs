@@ -49,6 +49,15 @@ describe("path_real", {
       expect_equal(path_real("foo2"), path_real("foo"))
     })
   })
+
+  it("propegates NAs", {
+    with_dir_tree(list("foo/bar" = "test"), {
+      link_create(path_real("foo"), "foo2")
+      expect_equal(path_real(NA_character_), NA_character_)
+      expect_equal(path_real(c("foo2", NA_character_)), c(path_real("foo"), NA_character_))
+    })
+
+  })
 })
 
 describe("path_split", {
@@ -207,6 +216,12 @@ describe("path_norm", {
 
     expect_equal(path_norm("\\\\?\\D:/XY\\Z"), "//?/D:/XY/Z")
   })
+
+  it ("works with missing values", {
+    expect_equal(path_norm(NA), NA_character_)
+    expect_equal(path_norm(c("foo", NA)), c("foo", NA))
+    expect_equal(path_norm(c(NA, NA)), c(NA_character_, NA_character_))
+  })
 })
 
 # Test cases derived from https://github.com/python/cpython/blob/6f0eb93183519024cb360162bdd81b9faec97ba6/Lib/test/test_posixpath.py
@@ -244,6 +259,12 @@ describe("path_common", {
 
     expect_error(path_common(c("", "/spam/alot")), "Can't mix")
   })
+
+  it("returns NA if any input is NA", {
+    expect_equal(path_common(NA), NA_character_)
+    expect_equal(path_common(c("and/jam", NA)), NA_character_)
+    expect_equal(path_common(c("and/jam", NA, "and")), NA_character_)
+  })
 })
 
 # derived from https://github.com/python/cpython/blob/6f0eb93183519024cb360162bdd81b9faec97ba6/Lib/test/test_posixpath.py#L483
@@ -275,10 +296,90 @@ describe("path_rel", {
     expect_equal(path_rel("c:/foo/bar/bat", "c:/x/y"), "../../foo/bar/bat")
     expect_equal(path_rel("//conky/mountpoint/a", "//conky/mountpoint/b/c"), "../../a")
   })
+
+  it("expands path before computing relativity", {
+    expect_equal(path_rel("/foo/bar/baz", "~"), path_rel("/foo/bar/baz", path_expand("~")))
+    expect_equal(path_rel("~/foo/bar/baz", "~"), "foo/bar/baz")
+  })
+
+  it("propagates NAs", {
+    expect_equal(path_rel(NA_character_), NA_character_)
+    expect_equal(path_rel("/foo/bar/baz", NA_character_), NA_character_)
+  })
 })
 
 describe("path_home", {
-  it("is equivalent to path_expand(\"~\")", {
-    expect_equal(path_home(), path_tidy(path_expand("~")))
+  # The trailing slash is needed to ensure we get path expansion
+  # on POSIX systems when readline support is not built in. (#60)
+  it("is equivalent to path_expand(\"~/\")", {
+    expect_equal(path_home(), path_tidy(path_expand("~/")))
+  })
+})
+
+describe("path_dir", {
+  it("works like dirname for normal paths", {
+    expect_equal(path_dir("foo/bar"), "foo")
+    expect_equal(path_dir("bar"), ".")
+    expect_equal(path_dir(c("foo/bar", "baz")), c("foo", "."))
+  })
+  it("propegates NAs", {
+    expect_equal(path_dir(NA_character_), NA_character_)
+    expect_equal(path_dir(c("foo/bar", NA)), c("foo", NA_character_))
+  })
+})
+
+describe("path_file", {
+  it("works like dirname for normal paths", {
+    expect_equal(path_file("foo/bar"), "bar")
+    expect_equal(path_file("bar"), "bar")
+    expect_equal(path_file(c("foo/bar", "baz")), c("bar", "baz"))
+  })
+  it("propegates NAs", {
+    expect_equal(path_file(NA_character_), NA_character_)
+    expect_equal(path_file(c("foo/bar", NA)), c("bar", NA_character_))
+  })
+})
+
+# These tests were adapted from
+# https://github.com/python/cpython/blob/48e8c82fc63d2ddcddce8aa637a892839b551619/Lib/test/test_ntpath.py,
+# hence the flying circus names, but I like dead parrots too, so keeping them.
+describe("path_expand", {
+  it("works on windows", {
+    with_mock("fs:::is_windows" = function() TRUE, {
+      withr::with_envvar(c("USERPROFILE" = NA, "HOMEDRIVE" = NA, "HOMEPATH" = NA), {
+        expect_equal(path_expand("~test"), "~test")
+      })
+      withr::with_envvar(c("USERPROFILE" = NA, "HOMEDRIVE" = "C:\\", "HOMEPATH" = "eric\\idle"), {
+        expect_equal(path_expand("~"), "C:/eric/idle")
+        expect_equal(path_expand("~test"), "C:/eric/test")
+      })
+      withr::with_envvar(c("USERPROFILE" = NA, "HOMEDRIVE" = NA, "HOMEPATH" = "eric/idle"), {
+        expect_equal(path_expand("~"), "eric/idle")
+        expect_equal(path_expand("~test"), "eric/test")
+      })
+      withr::with_envvar(c("USERPROFILE" = "C:\\idle\\eric"), {
+        expect_equal(path_expand("~"), "C:/idle/eric")
+        expect_equal(path_expand("~test"), "C:/idle/test")
+
+
+        expect_equal(path_expand("~test/foo/bar"), "C:/idle/test/foo/bar")
+        expect_equal(path_expand("~test/foo/bar/"), "C:/idle/test/foo/bar")
+        expect_equal(path_expand("~test\\foo\\bar"), "C:/idle/test/foo/bar")
+        expect_equal(path_expand("~test\\foo\\bar\\"), "C:/idle/test/foo/bar")
+        expect_equal(path_expand("~/foo/bar"), "C:/idle/eric/foo/bar")
+        expect_equal(path_expand("~\\foo\\bar"), "C:/idle/eric/foo/bar")
+      })
+      withr::with_envvar(c("USERPROFILE" = "C:\\idle\\eric", "R_FS_HOME" = "C:\\john\\cleese"), {
+        # R_FS_HOME overrides userprofile
+        expect_equal(path_expand("~"), "C:/john/cleese")
+        expect_equal(path_expand("~test"), "C:/john/test")
+      })
+    })
+  })
+  it("repects R_FS_HOME", {
+    withr::with_envvar(c("R_FS_HOME" = "/foo/bar"), {
+      expect_equal(path_expand("~"), "/foo/bar")
+      expect_equal(path_expand("~test"), "/foo/test")
+    })
   })
 })
