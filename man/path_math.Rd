@@ -17,7 +17,7 @@ path_split(path)
 
 path_join(parts)
 
-path_abs(path)
+path_abs(path, start = ".")
 
 path_norm(path)
 
@@ -30,7 +30,7 @@ path_common(path)
 
 \item{parts}{A list of character vectors, corresponding to split paths.}
 
-\item{start}{A starting directory to compute relative path to.}
+\item{start}{A starting directory to compute the path to.}
 }
 \value{
 The new path as a character vector. For \code{\link[=path_split]{path_split()}}, a list of

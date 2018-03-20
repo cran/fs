@@ -120,13 +120,16 @@ path_join <- function(parts) {
 
 #' @describeIn path_math returns a normalized, absolute version of a path.
 #' @export
-path_abs <- function(path) {
+path_abs <- function(path, start = ".") {
+  if (!is_absolute_path(start)) {
+    start <- path_norm(path(getwd(), start))
+  }
   is_abs <- is_absolute_path(path)
   path[is_abs] <- path_norm(path[is_abs])
-  cwd <- getwd()
-  path[!is_abs] <- path_norm(path(cwd, path[!is_abs]))
+  path[!is_abs] <- path_norm(path(start, path[!is_abs]))
   path_tidy(path)
 }
+
 
 #' @describeIn path_math collapses redundant separators and
 #' up-level references, so `A//B`, `A/B`, `A/.B` and `A/foo/../B` all become
@@ -170,7 +173,7 @@ path_norm <- function(path) {
 #' @describeIn path_math computes the path relative to the `start` path,
 #'   which can be either a absolute or relative path.
 #' @export
-#' @param start A starting directory to compute relative path to.
+#' @param start A starting directory to compute the path to.
 # This implementation is partially derived from
 # https://github.com/python/cpython/blob/9c99fd163d5ca9bcc0b7ddd0d1e3b8717a63237c/Lib/posixpath.py#L446
 path_rel <- function(path, start = ".") {
@@ -321,9 +324,13 @@ path_dir <- function(path) {
 #' @rdname path_file
 #' @export
 path_ext <- function(path) {
+  if (length(path) == 0) {
+    return(character())
+  }
+
   res <- captures(path, regexpr("(?<!^|[.])[.]([^.]+)$", path, perl = TRUE))[[1]]
   res[!is.na(path) & is.na(res)] <- ""
-  path_tidy(res)
+  res
 }
 
 #' @rdname path_file
@@ -359,7 +366,7 @@ path_common <- function(path) {
 
   # We must either have all absolute paths, or all relative paths.
   if (!(all(is_abs) || all(!is_abs))) {
-    stop("Can't mix absolute and relative paths", call. = FALSE)
+    stop(fs_error("Can't mix absolute and relative paths"))
   }
 
   path <- path_norm(path)
@@ -399,7 +406,7 @@ path_common <- function(path) {
 path_filter <- function(path, glob = NULL, regexp = NULL, invert = FALSE, ...) {
   if (!is.null(glob)) {
     if (!is.null(regexp)) {
-      stop("`glob` and `regexp` cannot both be set.", call. = FALSE)
+      stop(fs_error("`glob` and `regexp` cannot both be set."))
     }
     regexp <- utils::glob2rx(glob)
   }
