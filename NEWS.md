@@ -1,3 +1,18 @@
+# fs 1.2.2
+
+## Features
+
+* fs no longer needs a C++11 compiler, it now works with compilers which
+  support only C++03 (#90).
+
+## Bugfixes
+
+* `fs_path` `fs_bytes` and `fs_perm` objects now use `methods::setOldClass()`
+  so that S4 dispatch to their base classes works as intended (#91).
+
+* Fix allocation bug in `path_exists()` using `delete []` when we should have
+  used `free()`.
+
 # fs 1.2.1
 
 ## Features
