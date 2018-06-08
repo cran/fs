@@ -74,7 +74,7 @@ file_types <- c(
 #' @export
 #' @examples
 #' \dontshow{.old_wd <- setwd(tempdir())}
-#' file_create("foo", "000")
+#' file_create("foo", mode = "000")
 #' file_chmod("foo", "777")
 #' file_info("foo")$permissions
 #'
@@ -88,7 +88,7 @@ file_types <- c(
 #' file_info("foo")$permissions
 #'
 #' # It is also vectorized
-#' files <- c("foo", file_create("bar", "000"))
+#' files <- c("foo", file_create("bar", mode = "000"))
 #' file_chmod(files, "a+rwx")
 #' file_info(files)$permissions
 #'
@@ -192,9 +192,9 @@ file_move <- function(path, new_path) {
   }
   assert("Length of `path` must equal length of `new_path`", length(old) == length(new))
 
-  new[is_directory] <- path(new[is_directory], basename(new))
+  new[is_directory] <- path(new[is_directory], basename(old))
 
   move_(old, new)
 
-  invisible(path_tidy(new_path))
+  invisible(path_tidy(new))
 }

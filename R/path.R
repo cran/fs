@@ -132,7 +132,7 @@ path_abs <- function(path, start = ".") {
 
 
 #' @describeIn path_math collapses redundant separators and
-#' up-level references, so `A//B`, `A/B`, `A/.B` and `A/foo/../B` all become
+#' up-level references, so `A//B`, `A/B`, `A/./B` and `A/foo/../B` all become
 #' `A/B`. If one of the paths is a symbolic link, this may change the meaning
 #' of the path, in this case one should use [path_real()] prior to calling
 #' [path_norm()].
@@ -328,7 +328,7 @@ path_ext <- function(path) {
     return(character())
   }
 
-  res <- captures(path, regexpr("(?<!^|[.])[.]([^.]+)$", path, perl = TRUE))[[1]]
+  res <- captures(path, regexpr("(?<!^|[.]|/)[.]([^.]+)$", path, perl = TRUE))[[1]]
   res[!is.na(path) & is.na(res)] <- ""
   res
 }
@@ -336,7 +336,7 @@ path_ext <- function(path) {
 #' @rdname path_file
 #' @export
 path_ext_remove <- function(path) {
-  path_tidy(sub("(?<!^|[.])[.][^.]+$", "", path, perl = TRUE))
+  path_tidy(sub("(?<!^|[.]|/)[.][^.]+$", "", path, perl = TRUE))
 }
 
 #' @rdname path_file
