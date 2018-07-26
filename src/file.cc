@@ -48,7 +48,7 @@ void create_(CharacterVector path, mode_t mode) {
 }
 
 // [[Rcpp::export]]
-List stat_(CharacterVector path) {
+List stat_(CharacterVector path, bool fail) {
   // typedef struct {
   //  uint64_t st_dev;
   //  uint64_t st_mode;
@@ -134,9 +134,12 @@ List stat_(CharacterVector path) {
     const char* p = CHAR(STRING_ELT(path, i));
     int res = uv_fs_lstat(uv_default_loop(), &req, p, NULL);
 
-    // If file does not exist or the input is NA mark all results as NA
-    if (STRING_ELT(path, i) == NA_STRING || res == UV_ENOENT ||
-        res == UV_ENOTDIR) {
+    bool is_na = STRING_ELT(path, i) == NA_STRING;
+    bool doesnt_exist = res == UV_ENOENT || res == UV_ENOTDIR;
+    bool has_error =
+        !fail && !doesnt_exist && warn_for_error(req, "Failed to stat '%s'", p);
+
+    if (is_na || doesnt_exist || has_error) {
       REAL(VECTOR_ELT(out, 1))[i] = NA_REAL;
       INTEGER(VECTOR_ELT(out, 2))[i] = NA_INTEGER;
       INTEGER(VECTOR_ELT(out, 2))[i] = NA_INTEGER;
@@ -310,6 +313,17 @@ void chown_(CharacterVector path, int uid, int gid) {
     const char* p = CHAR(STRING_ELT(path, i));
     uv_fs_chown(uv_default_loop(), &req, p, uid, gid, NULL);
     stop_for_error(req, "Failed to chown '%s'", p);
+    uv_fs_req_cleanup(&req);
+  }
+}
+
+// [[Rcpp::export]]
+void touch_(CharacterVector path, double atime, double mtime) {
+  for (R_xlen_t i = 0; i < Rf_xlength(path); ++i) {
+    uv_fs_t req;
+    const char* p = CHAR(STRING_ELT(path, i));
+    uv_fs_utime(uv_default_loop(), &req, p, atime, mtime, NULL);
+    stop_for_error(req, "Failed to touch '%s'", p);
     uv_fs_req_cleanup(&req);
   }
 }

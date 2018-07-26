@@ -42,6 +42,15 @@ describe("path", {
   })
 })
 
+describe("path_wd", {
+  it("returns an absolute path from the working directory", {
+    x <- path_wd()
+    expect_true(is_absolute_path(x))
+
+    expect_equal(x, path(getwd()))
+  })
+})
+
 describe("path_real", {
   it("returns the real path for symbolic links", {
     with_dir_tree(list("foo/bar" = "test"), {
@@ -96,6 +105,17 @@ describe("path_tidy", {
     expect_equal(path_tidy("foo\\\\bar\\\\baz\\\\"), "foo/bar/baz")
   })
 
+  it("always appends windows root paths with /", {
+    expect_equal(path_tidy("C:"), "C:/")
+    expect_equal(path_tidy("c:"), "c:/")
+    expect_equal(path_tidy("X:"), "X:/")
+    expect_equal(path_tidy("x:"), "x:/")
+    expect_equal(path_tidy("c:/"), "c:/")
+    expect_equal(path_tidy("c://"), "c:/")
+    expect_equal(path_tidy("c:\\"), "c:/")
+    expect_equal(path_tidy("c:\\\\"), "c:/")
+  })
+
   it("passes NA along", {
     expect_equal(path_tidy(NA_character_), NA_character_)
     expect_equal(path_tidy(c("foo/bar", NA_character_)), c("foo/bar", NA_character_))
@@ -130,6 +150,10 @@ describe("path_ext", {
     expect_equal(path_ext("foo/.bar"), "")
     expect_equal(path_ext(c("foo.bar", NA_character_)), c("bar", NA_character_))
   })
+  it ("works with non-ASCII inputs", {
+    expect_equal(path_ext("föö.txt"), "txt")
+    expect_equal(path_ext("föö.tär"), "tär")
+  })
 })
 
 describe("path_ext_remove", {
@@ -151,6 +175,10 @@ describe("path_ext_remove", {
     expect_equal(path_ext_remove(".bar"), ".bar")
     expect_equal(path_ext_remove("foo/.bar"), "foo/.bar")
   })
+  it ("works with non-ASCII inputs", {
+    expect_equal(path_ext_remove("föö.txt"), "föö")
+    expect_equal(path_ext_remove("föö.tär"), "föö")
+  })
 })
 
 describe("path_ext_set", {
@@ -171,6 +199,10 @@ describe("path_ext_set", {
     expect_equal(path_ext_set(c("foo", NA_character_), "bar"), c("foo.bar", NA_character_))
     expect_equal(path_ext_set(".bar", "baz"), ".bar.baz")
     expect_equal(path_ext_set("foo/.bar", "baz"), "foo/.bar.baz")
+  })
+  it ("works with non-ASCII inputs", {
+    expect_equal(path_ext_set("föö.txt", "bar"), "föö.bar")
+    expect_equal(path_ext_set("föö.tär", "bar"), "föö.bar")
   })
 })
 
@@ -217,9 +249,9 @@ describe("path_norm", {
     expect_equal(path_norm("."), ".")
     expect_equal(path_norm(""), ".")
     expect_equal(path_norm("/"), "/")
-    expect_equal(path_norm("c:/"), "c:")
+    expect_equal(path_norm("c:/"), "c:/")
     expect_equal(path_norm("/../.././.."), "/")
-    expect_equal(path_norm("c:/../../.."), "c:")
+    expect_equal(path_norm("c:/../../.."), "c:/")
     expect_equal(path_norm("../.././.."), "../../..")
     expect_equal(path_norm("C:////a/b"), "C:/a/b")
     expect_equal(path_norm("//machine/share//a/b"), "//machine/share/a/b")
@@ -275,6 +307,16 @@ describe("path_common", {
     expect_equal(path_common(c("and/jam", NA)), NA_character_)
     expect_equal(path_common(c("and/jam", NA, "and")), NA_character_)
   })
+})
+
+describe("path_has_parent", {
+  expect_false(path_has_parent("foo", "bar"))
+  expect_false(path_has_parent("foo", "foo/bar"))
+
+  expect_false(path_has_parent("/usr/var2/log", "/usr/var"))
+
+  expect_true(path_has_parent("foo/bar", "foo"))
+  expect_true(path_has_parent("path/myfiles/myfile", "path/to/files/../../myfiles"))
 })
 
 # derived from https://github.com/python/cpython/blob/6f0eb93183519024cb360162bdd81b9faec97ba6/Lib/test/test_posixpath.py#L483

@@ -5,6 +5,7 @@
 #' more natural. On systems which do not support all metadata (such as Windows)
 #' default values are used.
 #' @template fs
+#' @inheritParams dir_ls
 #' @return A data.frame with metadata for each file. Columns returned are as follows.
 #'  \item{path}{The input path, as a [fs_path()] character vector.}
 #'  \item{type}{The file type, as a factor of file types.}
@@ -39,10 +40,10 @@
 #' file_delete("mtcars.csv")
 #' \dontshow{setwd(.old_wd)}
 #' @export
-file_info <- function(path) {
+file_info <- function(path, fail = TRUE) {
   old <- path_expand(path)
 
-  res <- stat_(old)
+  res <- stat_(old, fail)
 
   res$path <- path_tidy(path)
 
@@ -197,4 +198,33 @@ file_move <- function(path, new_path) {
   move_(old, new)
 
   invisible(path_tidy(new))
+}
+
+#' Change file access and modification times
+#'
+#' Unlike the touch POSIX utility this does not create the file if it does not
+#' exist. Use [file_create()] to do this if needed.
+#'
+#' @template fs
+#'
+#' @param access_time,modification_time The times to set, inputs will be
+#'   coerced to [POSIXct] objects.
+#' @examples
+#' \dontshow{.old_wd <- setwd(tempdir())}
+#' file_create("foo")
+#' file_touch("foo", "2018-01-01")
+#' file_info("foo")[c("access_time", "modification_time", "change_time", "birth_time")]
+#' \dontshow{setwd(.old_wd)}
+#' @export
+file_touch <- function(path, access_time = Sys.time(), modification_time = access_time) {
+  assert_no_missing(path)
+
+  access_time <- as.POSIXct(access_time)
+  modification_time <- as.POSIXct(modification_time)
+
+  path <- path_expand(path)
+
+  touch_(path, access_time, modification_time)
+
+  invisible(path_tidy(path))
 }

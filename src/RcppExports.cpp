@@ -27,8 +27,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // dir_map_
-List dir_map_(CharacterVector path, Function fun, bool all, IntegerVector type, bool recurse);
-RcppExport SEXP _fs_dir_map_(SEXP pathSEXP, SEXP funSEXP, SEXP allSEXP, SEXP typeSEXP, SEXP recurseSEXP) {
+List dir_map_(CharacterVector path, Function fun, bool all, IntegerVector type, bool recurse, bool fail);
+RcppExport SEXP _fs_dir_map_(SEXP pathSEXP, SEXP funSEXP, SEXP allSEXP, SEXP typeSEXP, SEXP recurseSEXP, SEXP failSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,7 +37,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type all(allSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type type(typeSEXP);
     Rcpp::traits::input_parameter< bool >::type recurse(recurseSEXP);
-    rcpp_result_gen = Rcpp::wrap(dir_map_(path, fun, all, type, recurse));
+    Rcpp::traits::input_parameter< bool >::type fail(failSEXP);
+    rcpp_result_gen = Rcpp::wrap(dir_map_(path, fun, all, type, recurse, fail));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,13 +65,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // stat_
-List stat_(CharacterVector path);
-RcppExport SEXP _fs_stat_(SEXP pathSEXP) {
+List stat_(CharacterVector path, bool fail);
+RcppExport SEXP _fs_stat_(SEXP pathSEXP, SEXP failSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< CharacterVector >::type path(pathSEXP);
-    rcpp_result_gen = Rcpp::wrap(stat_(path));
+    Rcpp::traits::input_parameter< bool >::type fail(failSEXP);
+    rcpp_result_gen = Rcpp::wrap(stat_(path, fail));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -128,6 +130,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type uid(uidSEXP);
     Rcpp::traits::input_parameter< int >::type gid(gidSEXP);
     chown_(path, uid, gid);
+    return R_NilValue;
+END_RCPP
+}
+// touch_
+void touch_(CharacterVector path, double atime, double mtime);
+RcppExport SEXP _fs_touch_(SEXP pathSEXP, SEXP atimeSEXP, SEXP mtimeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< double >::type atime(atimeSEXP);
+    Rcpp::traits::input_parameter< double >::type mtime(mtimeSEXP);
+    touch_(path, atime, mtime);
     return R_NilValue;
 END_RCPP
 }
@@ -300,15 +314,16 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_fs_mkdir_", (DL_FUNC) &_fs_mkdir_, 2},
     {"_fs_rmdir_", (DL_FUNC) &_fs_rmdir_, 1},
-    {"_fs_dir_map_", (DL_FUNC) &_fs_dir_map_, 5},
+    {"_fs_dir_map_", (DL_FUNC) &_fs_dir_map_, 6},
     {"_fs_move_", (DL_FUNC) &_fs_move_, 2},
     {"_fs_create_", (DL_FUNC) &_fs_create_, 2},
-    {"_fs_stat_", (DL_FUNC) &_fs_stat_, 1},
+    {"_fs_stat_", (DL_FUNC) &_fs_stat_, 2},
     {"_fs_access_", (DL_FUNC) &_fs_access_, 2},
     {"_fs_chmod_", (DL_FUNC) &_fs_chmod_, 2},
     {"_fs_unlink_", (DL_FUNC) &_fs_unlink_, 1},
     {"_fs_copyfile_", (DL_FUNC) &_fs_copyfile_, 3},
     {"_fs_chown_", (DL_FUNC) &_fs_chown_, 3},
+    {"_fs_touch_", (DL_FUNC) &_fs_touch_, 3},
     {"_fs_cleanup_", (DL_FUNC) &_fs_cleanup_, 0},
     {"_fs_getmode_", (DL_FUNC) &_fs_getmode_, 2},
     {"_fs_strmode_", (DL_FUNC) &_fs_strmode_, 1},
