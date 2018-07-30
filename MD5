@@ -1,6 +1,6 @@
-bc60829a2bec59d8c4ca1b9abaeaeea7 *DESCRIPTION
+449671bc33e137f5f4dd277161c33cbc *DESCRIPTION
 347177526917e05944a1c562f6921b7a *NAMESPACE
-1df9981e7e93fbf65ca44c33cd343f28 *NEWS.md
+20a9e070dfcb40918c7bf4eb1a1e4d6c *NEWS.md
 0e06d86b52a34c88ec2853e06da25d03 *R/RcppExports.R
 3cd050e83bcf2ff015d4dcc83b2ea8e3 *R/access.R
 874c078f7e2134d6bde30894218af2d4 *R/copy.R
@@ -66,7 +66,7 @@ a63c6d5a18d4b2216592d37c8ad78445 *src/bsd/unistd.h
 cfbaa9e994d75af9d0ddb3b5a1553b17 *src/dir.cc
 9814e29a58ca35e73443fc500ad01031 *src/error.cc
 0140a65ea303633bbd6b5c1257269f4d *src/error.h
-72924226bb23ad0bae60a31782daa1f5 *src/file.cc
+613304123979e1c906953c1455a0985b *src/file.cc
 5f7c8b4858ebdf7608b9f7d0cf83b404 *src/fs.cc
 fec848d6493bd3b14ba50a3a8dec1c70 *src/getmode.h
 29539230c7b81957816f8e9f081fb9f7 *src/id.cc
@@ -241,7 +241,7 @@ e1d4e686f5737b397fec9bfe5a144222 *tests/testthat/test-fs_path.R
 da9c500acbe93c8841470349a8213e7a *tests/testthat/test-id.R
 cb1c951d17933d4231c48356d843a641 *tests/testthat/test-is.R
 a349d468f8cbaadbd7ad1e199ad715d3 *tests/testthat/test-link.R
-f30e2d2bd70fcc933c56a1bc9f959e0a *tests/testthat/test-list.R
+9a9c570c5f10b526dc5e5c154d77f328 *tests/testthat/test-list.R
 b16689df8ffc3f3f48efb3dd83bfa9de *tests/testthat/test-path.R
 bf39ce0a612fbca1bce00b81934e654d *tests/testthat/test-path_package.R
 b1fb701f441174b3ba9c73c732e4972e *tests/testthat/test-sanitize.R
