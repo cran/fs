@@ -1,3 +1,12 @@
+# fs 1.2.6
+
+* This is a small bugfix only release.
+
+* `file_move()` now fall back to copying, then removing files when moving files
+  between devices (which would otherwise fail) (#131, https://github.com/r-lib/usethis/issues/438).
+
+* Fix for a double free when using `warn = TRUE` (#132)
+
 # fs 1.2.5
 
 * Patch release to fix tests which left files in the R session directory

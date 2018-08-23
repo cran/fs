@@ -47,7 +47,6 @@ NULL
 #' `path()` constructs a relative path, `path_wd()` constructs an absolute path
 #' from the current working directory.
 #'
-#' @template fs
 #' @param ... character vectors, if any values are NA, the result will also be
 #'   NA.
 #' @param ext An optional extension to append to the generated path.
@@ -63,6 +62,7 @@ path <- function(..., ext = "") {
 }
 
 #' @rdname path
+#' @export
 path_wd <- function(..., ext = "") {
   path(getwd(), ..., ext = ext)
 }
