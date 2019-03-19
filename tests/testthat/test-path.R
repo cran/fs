@@ -59,7 +59,78 @@ describe("path_real", {
     })
   })
 
-  it("propegates NAs", {
+  it("returns the real path for symbolic links even if the full path doesn't exist", {
+    with_dir_tree(list("foo/bar/baz" = "test"), {
+      link_create(path_real("foo"), "foo2")
+      expect_equal(path_real("foo/qux"), path_real("foo/qux"))
+
+      link_create(path_real("foo/bar"), "bar2")
+      expect_equal(path_real("bar2/qux"), path_real("bar2/qux"))
+    })
+  })
+
+  it ("works with indirect symlinks", {
+    skip_on_os("windows")
+
+    with_dir_tree("foo", {
+      wd <- path_wd()
+      link_create(path("..", path_file(wd)), "self")
+      link_create("self", "link")
+      expect_equal(path_real("link"), wd)
+    })
+  })
+
+  it ("works with parent symlinks", {
+    skip_on_os("windows")
+
+    # If there are symlinks in the parents of relative paths we need to resolve
+    # them.
+    # e.g. working directory is /usr/doc with 'doc' being a symlink to
+    # /usr/share/doc. If we call `path_real("a")` we should return
+    # /usr/share/doc/a.
+    with_dir_tree("y", {
+      wd <- path_wd()
+      link_create("y", "k")
+      withr::with_dir("k", {
+        expect_equal(path_real("a"), path(wd, "/y/a"))
+      })
+    })
+  })
+
+  it ("resolves paths before normalizing", {
+
+    skip_on_os("windows")
+
+    # if we have the following hierarchy: a/k/y
+    # and a symbolic link 'link-y' pointing to 'y' in directory 'a',
+    # then `path_real("link-y/..")` should return 'k', not 'a'.
+    with_dir_tree("a/k/y", {
+      link_create("a/k/y", "link-y")
+
+      expect_equal(path_real("link-y/.."), path_real("a/k"))
+    })
+  })
+
+  it ("resolves paths before normalizing", {
+
+    skip_on_os("windows")
+
+    # if we have the following hierarchy: a/k/y
+    # and a symbolic link 'link-y' pointing to 'y' in directory 'a',
+    # then `path_real("link-y/..")` should return 'k', not 'a'.
+    with_dir_tree("k", {
+      wd <- path_wd()
+      link_create(wd, "link")
+
+      withr::with_dir(path_dir(wd), {
+        base <- path_file(wd)
+        expect_equal(path_real(path(base, "link")), wd)
+        expect_equal(path_real(path(base, "link/k")), path(wd, "k"))
+      })
+    })
+  })
+
+  it("propagates NAs", {
     with_dir_tree(list("foo/bar" = "test"), {
       link_create(path_real("foo"), "foo2")
       expect_equal(path_real(NA_character_), NA_character_)
@@ -77,7 +148,7 @@ describe("path_split", {
 
   it("does not split the root path", {
     expect_equal(path_split("/usr/bin")[[1]], c("/", "usr", "bin"))
-    expect_equal(path_split("c:/usr/bin")[[1]], c("c:", "usr", "bin"))
+    expect_equal(path_split("c:/usr/bin")[[1]], c("C:", "usr", "bin"))
     expect_equal(path_split("X:/usr/bin")[[1]], c("X:", "usr", "bin"))
     expect_equal(path_split("//server/usr/bin")[[1]], c("//server", "usr", "bin"))
     expect_equal(path_split("\\\\server\\usr\\bin")[[1]], c("//server", "usr", "bin"))
@@ -105,15 +176,15 @@ describe("path_tidy", {
     expect_equal(path_tidy("foo\\\\bar\\\\baz\\\\"), "foo/bar/baz")
   })
 
-  it("always appends windows root paths with /", {
+  it("always capitalizes and appends windows root paths with /", {
     expect_equal(path_tidy("C:"), "C:/")
-    expect_equal(path_tidy("c:"), "c:/")
+    expect_equal(path_tidy("c:"), "C:/")
     expect_equal(path_tidy("X:"), "X:/")
-    expect_equal(path_tidy("x:"), "x:/")
-    expect_equal(path_tidy("c:/"), "c:/")
-    expect_equal(path_tidy("c://"), "c:/")
-    expect_equal(path_tidy("c:\\"), "c:/")
-    expect_equal(path_tidy("c:\\\\"), "c:/")
+    expect_equal(path_tidy("x:"), "X:/")
+    expect_equal(path_tidy("c:/"), "C:/")
+    expect_equal(path_tidy("c://"), "C:/")
+    expect_equal(path_tidy("c:\\"), "C:/")
+    expect_equal(path_tidy("c:\\\\"), "C:/")
   })
 
   it("passes NA along", {
@@ -149,6 +220,7 @@ describe("path_ext", {
     expect_equal(path_ext(".bar"), "")
     expect_equal(path_ext("foo/.bar"), "")
     expect_equal(path_ext(c("foo.bar", NA_character_)), c("bar", NA_character_))
+    expect_equal(path_ext("foo.bar/baz"), "")
   })
   it ("works with non-ASCII inputs", {
     expect_equal(path_ext("föö.txt"), "txt")
@@ -174,6 +246,8 @@ describe("path_ext_remove", {
     expect_equal(path_ext_remove(c("foo.bar", NA_character_)), c("foo", NA_character_))
     expect_equal(path_ext_remove(".bar"), ".bar")
     expect_equal(path_ext_remove("foo/.bar"), "foo/.bar")
+    expect_equal(path_ext_remove("foo.bar/abc.123"), "foo.bar/abc")
+    expect_equal(path_ext_remove("foo.bar/abc"), "foo.bar/abc")
   })
   it ("works with non-ASCII inputs", {
     expect_equal(path_ext_remove("föö.txt"), "föö")
@@ -199,6 +273,11 @@ describe("path_ext_set", {
     expect_equal(path_ext_set(c("foo", NA_character_), "bar"), c("foo.bar", NA_character_))
     expect_equal(path_ext_set(".bar", "baz"), ".bar.baz")
     expect_equal(path_ext_set("foo/.bar", "baz"), "foo/.bar.baz")
+    expect_equal(path_ext_set("foo", ""), "foo")
+  })
+  it ("works the same with and without a leading . for ext", {
+    expect_equal(path_ext_set("foo", "bar"), "foo.bar")
+    expect_equal(path_ext_set("foo", ".bar"), "foo.bar")
   })
   it ("works with non-ASCII inputs", {
     expect_equal(path_ext_set("föö.txt", "bar"), "föö.bar")
@@ -239,19 +318,19 @@ describe("path_norm", {
     expect_equal(path_norm("A/foo/../B"), "A/B")
     expect_equal(path_norm("C:A//B"), "C:A/B")
     expect_equal(path_norm("D:A/./B"), "D:A/B")
-    expect_equal(path_norm("e:A/foo/../B"), "e:A/B")
+    expect_equal(path_norm("e:A/foo/../B"), "E:A/B")
 
     expect_equal(path_norm("C:///A//B"), "C:/A/B")
     expect_equal(path_norm("D:///A/./B"), "D:/A/B")
-    expect_equal(path_norm("e:///A/foo/../B"), "e:/A/B")
+    expect_equal(path_norm("e:///A/foo/../B"), "E:/A/B")
 
     expect_equal(path_norm(".."), "..")
     expect_equal(path_norm("."), ".")
     expect_equal(path_norm(""), ".")
     expect_equal(path_norm("/"), "/")
-    expect_equal(path_norm("c:/"), "c:/")
+    expect_equal(path_norm("c:/"), "C:/")
     expect_equal(path_norm("/../.././.."), "/")
-    expect_equal(path_norm("c:/../../.."), "c:/")
+    expect_equal(path_norm("c:/../../.."), "C:/")
     expect_equal(path_norm("../.././.."), "../../..")
     expect_equal(path_norm("C:////a/b"), "C:/a/b")
     expect_equal(path_norm("//machine/share//a/b"), "//machine/share/a/b")
@@ -347,6 +426,7 @@ describe("path_rel", {
   it("works for windows paths", {
     expect_equal(path_rel("c:/foo/bar/bat", "c:/x/y"), "../../foo/bar/bat")
     expect_equal(path_rel("//conky/mountpoint/a", "//conky/mountpoint/b/c"), "../../a")
+    expect_equal(path_rel("d:/Users/a", "D:/Users/b"), "../a")
   })
 
   it("expands path before computing relativity", {
@@ -380,7 +460,7 @@ describe("path_dir", {
     expect_equal(path_dir("bar"), ".")
     expect_equal(path_dir(c("foo/bar", "baz")), c("foo", "."))
   })
-  it("propegates NAs", {
+  it("propagates NAs", {
     expect_equal(path_dir(NA_character_), NA_character_)
     expect_equal(path_dir(c("foo/bar", NA)), c("foo", NA_character_))
   })
@@ -392,7 +472,7 @@ describe("path_file", {
     expect_equal(path_file("bar"), "bar")
     expect_equal(path_file(c("foo/bar", "baz")), c("bar", "baz"))
   })
-  it("propegates NAs", {
+  it("propagates NAs", {
     expect_equal(path_file(NA_character_), NA_character_)
     expect_equal(path_file(c("foo/bar", NA)), c("bar", NA_character_))
   })

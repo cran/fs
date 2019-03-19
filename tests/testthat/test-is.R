@@ -29,6 +29,16 @@ with_dir_tree(list("foo/bar"  = "test"), {
       expect_equal(is_link("baz"), c(baz = FALSE))
     })
   })
+
+  describe("is_file_empty", {
+    it("returns true for empty files and false for others", {
+      file_create("blah")
+      expect_true(is_file_empty("blah"))
+      expect_false(is_file_empty("foo/bar"))
+      expect_false(is_file_empty("baz"))
+    })
+  })
+
   describe("is_absolute_path", {
     it("detects windows absolute paths", {
       expect_true(is_absolute_path("c:\\"))

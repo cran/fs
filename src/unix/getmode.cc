@@ -1,6 +1,7 @@
 #include "getmode.h"
 
-#if (defined(__APPLE__) && defined(__MACH__)) || defined(__BSD__)
+#if (defined(__APPLE__) && defined(__MACH__)) || defined(__OpenBSD__) ||       \
+    defined(__FreeBSD__) || defined(__NetBSD__)
 #include <string.h> /* for strmode */
 #include <unistd.h> /* for getmode / setmode */
 #else
@@ -12,7 +13,7 @@
 
 #include <sys/stat.h>
 
-mode_t getmode_(const char* mode_str, mode_t mode) {
+unsigned short getmode_(const char* mode_str, unsigned short mode) {
   void* out = setmode(mode_str);
   if (out == NULL) {
     // TODO: use stop_for_error here
@@ -23,7 +24,7 @@ mode_t getmode_(const char* mode_str, mode_t mode) {
   return res;
 }
 
-std::string strmode_(mode_t mode) {
+std::string strmode_(unsigned short mode) {
   char out[12];
   strmode(mode, out);
 
@@ -34,7 +35,7 @@ std::string strmode_(mode_t mode) {
   return out + 1;
 }
 
-std::string file_code_(std::string path, mode_t mode) {
+std::string file_code_(std::string path, unsigned short mode) {
   switch (mode & S_IFMT) {
   case S_IFDIR:
     if (mode & S_IWOTH)

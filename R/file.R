@@ -59,6 +59,14 @@ file_info <- function(path, fail = TRUE) {
   res[c(important, setdiff(names(res), important))]
 }
 
+#' @export
+#' @rdname file_info
+file_size <- function(path, fail = TRUE) {
+  res <- file_info(path, fail)
+
+  stats::setNames(res$size, path)
+}
+
 file_types <- c(
   "any" = -1,
   "block_device" = 0L,
@@ -132,7 +140,7 @@ file_chown <- function(path, user_id = NULL, group_id = NULL) {
   }
 
   if (is.character(group_id)) {
-    user_id <- getgrnam_(user_id)
+    group_id <- getgrnam_(group_id)
   }
 
   chown_(old, user_id, group_id)
@@ -153,7 +161,7 @@ file_show <- function(path = ".", browser = getOption("browser")) {
   old <- path_expand(path)
 
   for (p in path) {
-    browseURL(p)
+    browseURL(p, browser = browser)
   }
 
   invisible(path_tidy(path))
@@ -186,7 +194,7 @@ file_move <- function(path, new_path) {
   old <- path_expand(path)
   new <- path_expand(new_path)
 
-  is_directory <- file_exists(new) && is_dir(new)
+  is_directory <- file_exists(new) & is_dir(new)
 
   if (length(new) == 1 && is_directory[[1]]) {
     new <- rep(new, length(path))
@@ -224,6 +232,7 @@ file_touch <- function(path, access_time = Sys.time(), modification_time = acces
 
   path <- path_expand(path)
 
+  create_(path, 420)
   touch_(path, access_time, modification_time)
 
   invisible(path_tidy(path))

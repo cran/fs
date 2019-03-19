@@ -34,6 +34,17 @@ describe("file_info", {
   })
 })
 
+describe("file_size", {
+  with_dir_tree(list(
+      "foo" = "test",
+      "bar" = "test2"), {
+      it("returns the correct file size", {
+        expect_equal(file_size("foo"), stats::setNames(file_info("foo")$size, "foo"))
+        expect_equal(file_size("bar"), stats::setNames(file_info("bar")$size, "bar"))
+      })
+  })
+})
+
 # Windows permissions only really allow setting read only, so we will skip
 # the more thorough tests
 if (!is_windows()) {
@@ -163,7 +174,15 @@ describe("file_touch", {
       expect_true(old$access_time > new2$access_time)
     })
   })
+
   it("errors on missing input", {
     expect_error(file_touch(NA), class = "invalid_argument")
+  })
+
+  it("creates the file if it doesn't exist", {
+    with_dir_tree("dir", {
+      file_touch("foo")
+      expect_true(file_exists("foo"))
+    })
   })
 })
