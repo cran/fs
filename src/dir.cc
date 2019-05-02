@@ -19,16 +19,23 @@ void mkdir_(CharacterVector path, unsigned short mode) {
 
     int fd = uv_fs_mkdir(uv_default_loop(), &req, p, mode, NULL);
 
-    // We want to fail silently if the directory already exists or if we don't
-    // have permissions to create the directory and it is not the last
-    // directory we are trying to create. (In this case we assume the directory
-    // already exists).
-    uv_dirent_type_t t = get_dirent_type(p);
-    if ((fd == UV_EEXIST && (t == UV_DIRENT_DIR || t == UV_DIRENT_LINK)) ||
-        (fd == UV_EPERM && i < n - 1)) {
+    if (fd == UV_EEXIST) {
+      // Fail silently if the directory already exists
+
+      uv_dirent_type_t t = get_dirent_type(p);
+      if (t == UV_DIRENT_DIR || t == UV_DIRENT_LINK) {
+        uv_fs_req_cleanup(&req);
+        continue;
+      }
+    } else if (fd == UV_EPERM && i < n - 1) {
+      // Fail silently if we do not have permissions to create the directory and
+      // it is not the last directory we are trying to create. (In this case we
+      // assume the directory already exists).
+
       uv_fs_req_cleanup(&req);
       continue;
     }
+
     stop_for_error(req, "Failed to make directory '%s'", p);
   }
 }
@@ -50,7 +57,7 @@ void dir_map(
     const char* path,
     bool all,
     int file_type,
-    bool recurse,
+    size_t recurse,
     CollectorList* value,
     bool fail) {
   uv_fs_t req;
@@ -86,8 +93,8 @@ void dir_map(
       value->push_back(fun(asCharacterVector(name)));
     }
 
-    if (recurse && entry_type == UV_DIRENT_DIR) {
-      dir_map(fun, name.c_str(), all, file_type, true, value, fail);
+    if (recurse > 0 && entry_type == UV_DIRENT_DIR) {
+      dir_map(fun, name.c_str(), all, file_type, recurse - 1, value, fail);
     }
     if (next_res != UV_EOF) {
 
@@ -106,7 +113,7 @@ List dir_map_(
     Function fun,
     bool all,
     IntegerVector type,
-    bool recurse,
+    size_t recurse,
     bool fail) {
   int file_type = INTEGER(type)[0];
 

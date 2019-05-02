@@ -10,8 +10,9 @@
 #' @param mode If file/directory is created, what mode should it have?
 #'
 #'   Links do not have mode; they inherit the mode of the file they link to.
-#' @param recursive should intermediate directories be created if they do not
+#' @param recurse should intermediate directories be created if they do not
 #'   exist?
+#' @param recursive (Deprecated) If `TRUE` recurse fully.
 #' @param ... Additional arguments passed to [path()]
 #' @return The path to the created object (invisibly).
 #' @name create
@@ -45,16 +46,21 @@ file_create <- function(path, ..., mode = "u=rw,go=r") {
 
 #' @export
 #' @rdname create
-dir_create <- function(path, ..., mode = "u=rwx,go=rx", recursive = TRUE) {
+dir_create <- function(path, ..., mode = "u=rwx,go=rx", recurse = TRUE, recursive) {
   assert_no_missing(path)
   assert("`mode` must be of length 1", length(mode) == 1)
+
+  if (!missing(recursive)) {
+    recurse <- recursive
+    warning("`recursive` is deprecated, please use `recurse` instead", immediate. = TRUE, call. = FALSE)
+  }
 
   mode <- as_fs_perms(mode)
   new <- path_expand(path(path, ...))
 
   paths <- path_split(new)
   for (p in paths) {
-    if (length(p) == 1 || !isTRUE(recursive)) {
+    if (length(p) == 1 || !isTRUE(recurse)) {
       mkdir_(p, mode)
     } else {
       p_paths <- Reduce(get("path", mode = "function"), p, accumulate = TRUE)

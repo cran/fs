@@ -1,9 +1,12 @@
 #' Print contents of directories in a tree-like format
 #'
 #' @param path A path to print the tree from
+#' @inheritParams dir_ls
+#' @param ... Additional arguments passed to [dir_ls].
+#'
 #' @export
-dir_tree <- function(path = ".") {
-  files <- dir_ls(path, recursive = TRUE)
+dir_tree <- function(path = ".", recurse = TRUE, ...) {
+  files <- dir_ls(path, recurse = recurse, ...)
   by_dir <- split(files, path_dir(files))
 
   ch <- box_chars()

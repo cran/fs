@@ -7,16 +7,17 @@
 \alias{dir_info}
 \title{List files}
 \usage{
-dir_ls(path = ".", all = FALSE, recursive = FALSE, type = "any",
-  glob = NULL, regexp = NULL, invert = FALSE, fail = TRUE, ...)
+dir_ls(path = ".", all = FALSE, recurse = FALSE, type = "any",
+  glob = NULL, regexp = NULL, invert = FALSE, fail = TRUE, ...,
+  recursive)
 
-dir_map(path = ".", fun, all = FALSE, recursive = FALSE,
+dir_map(path = ".", fun, all = FALSE, recurse = FALSE,
   type = "any", fail = TRUE)
 
-dir_walk(path = ".", fun, all = FALSE, recursive = FALSE,
+dir_walk(path = ".", fun, all = FALSE, recurse = FALSE,
   type = "any", fail = TRUE)
 
-dir_info(path = ".", all = FALSE, recursive = FALSE, type = "any",
+dir_info(path = ".", all = FALSE, recurse = FALSE, type = "any",
   regexp = NULL, glob = NULL, fail = TRUE, ...)
 }
 \arguments{
@@ -24,8 +25,8 @@ dir_info(path = ".", all = FALSE, recursive = FALSE, type = "any",
 
 \item{all}{If \code{TRUE} hidden files are also returned.}
 
-\item{recursive}{Should directories be listed recursively?
-the filenames.}
+\item{recurse}{If \code{TRUE} recurse fully, if a positive number the number of levels
+to recurse.}
 
 \item{type}{File type(s) to return, one or more of "any", "file", "directory",
 "symlink", "FIFO", "socket", "character_device" or "block_device".}
@@ -41,11 +42,14 @@ accessed.}
 
 \item{...}{Additional arguments passed to \link{grep}.}
 
+\item{recursive}{(Deprecated) If \code{TRUE} recurse fully.}
+
 \item{fun}{A function, taking one parameter, the current path entry.}
 }
 \description{
 \code{dir_ls()} is equivalent to the \code{ls} command. It returns filenames as a
-\code{fs_path} character vector.
+named \code{fs_path} character vector. The names are equivalent to the values,
+which is useful for passing onto functions like \code{\link[purrr:map_dfr]{purrr::map_dfr()}}.
 
 \code{dir_info()} is equivalent to \code{ls -l} and a shortcut for
 \code{file_info(dir_ls())}.
@@ -62,7 +66,7 @@ dir_ls(R.home("share"), type = "directory")
 # Create a shorter link
 link_create(system.file(package = "base"), "base")
 
-dir_ls("base", recursive = TRUE, glob = "*.R")
+dir_ls("base", recurse = TRUE, glob = "*.R")
 
 dir_map("base", identity)
 

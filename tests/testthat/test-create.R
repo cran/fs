@@ -23,6 +23,16 @@ test_that("dir_create fails silently if the directory or link exists and fails i
   })
 })
 
+test_that("dir_create fails with EACCES if it cannot create the directory", {
+  skip_on_os("windows")
+
+  with_dir_tree("foo", {
+    # Set current directly as read-only
+    file_chmod(".", "u-w")
+    expect_error(dir_create("bar"), class = "EACCES")
+  })
+})
+
 test_that("link_create does not modify existing links", {
 
   # Windows does not currently support file based symlinks
@@ -34,7 +44,7 @@ test_that("link_create does not modify existing links", {
   dir_create(path(x, "dir2"))
 
   link_create(path(x, "dir1"), path(x, "link"))
-  expect_error(link_create(path(x, "dir2"), path(x, "link")), "file already exists")
+  expect_error(link_create(path(x, "dir2"), path(x, "link")), "file already exists", class = "EEXIST")
   expect_equal(link_path(path(x, "link")), path(x, "dir1"))
 
   expect_error(link_create(NA), class = "invalid_argument")

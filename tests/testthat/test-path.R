@@ -223,8 +223,11 @@ describe("path_ext", {
     expect_equal(path_ext("foo.bar/baz"), "")
   })
   it ("works with non-ASCII inputs", {
-    expect_equal(path_ext("föö.txt"), "txt")
-    expect_equal(path_ext("föö.tär"), "tär")
+    expect_equal(path_ext("f\U00F6\U00F6.txt"), "txt")
+    expect_equal(path_ext("f\U00F6\U00F6.t\U00E4r"), "t\U00E4r")
+  })
+  it("returns a normal character vector", {
+    expect_equal(class(path_dir("foo.sh")), "character")
   })
 })
 
@@ -349,8 +352,8 @@ describe("path_norm", {
 
 describe("path_common", {
   it ("finds the common path", {
-    expect_error(path_common(c("/usr", "usr")), "Can't mix")
-    expect_error(path_common(c("usr", "/usr")), "Can't mix")
+    expect_error(path_common(c("/usr", "usr")), "Can't mix", class = "fs_error")
+    expect_error(path_common(c("usr", "/usr")), "Can't mix", class = "fs_error")
 
     expect_equal(path_common(c("/usr/local")), "/usr/local")
     expect_equal(path_common(c("/usr/local", "/usr/local")), "/usr/local")
@@ -378,7 +381,7 @@ describe("path_common", {
     expect_equal(path_common(c("")), "")
     expect_equal(path_common(c("", "spam/alot")), "")
 
-    expect_error(path_common(c("", "/spam/alot")), "Can't mix")
+    expect_error(path_common(c("", "/spam/alot")), "Can't mix", class = "fs_error")
   })
 
   it("returns NA if any input is NA", {
@@ -438,6 +441,16 @@ describe("path_rel", {
     expect_equal(path_rel(NA_character_), NA_character_)
     expect_equal(path_rel("/foo/bar/baz", NA_character_), NA_character_)
   })
+
+  it("can be reversed by path_abs", {
+    f <- file_temp()
+    expect_equal(path_abs(path_rel(f)), f)
+
+    home <- path_home()
+    home_f <- path_abs(path_home("../../foo/bar/baz"))
+
+    expect_equal(path_abs(path_rel(home_f, start = home), start = home), home_f)
+  })
 })
 
 describe("path_abs", {
@@ -464,6 +477,9 @@ describe("path_dir", {
     expect_equal(path_dir(NA_character_), NA_character_)
     expect_equal(path_dir(c("foo/bar", NA)), c("foo", NA_character_))
   })
+  it("returns a normal character vector", {
+    expect_equal(class(path_dir("foo/bar")), "character")
+  })
 })
 
 describe("path_file", {
@@ -475,6 +491,9 @@ describe("path_file", {
   it("propagates NAs", {
     expect_equal(path_file(NA_character_), NA_character_)
     expect_equal(path_file(c("foo/bar", NA)), c("bar", NA_character_))
+  })
+  it("returns a normal character vector", {
+    expect_equal(class(path_dir("foo/bar")), "character")
   })
 })
 

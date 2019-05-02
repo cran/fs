@@ -2,7 +2,7 @@
 % Please edit documentation in R/path_package.R
 \name{path_package}
 \alias{path_package}
-\title{Construct a path to a location within an installed package}
+\title{Construct a path to a location within an installed or development package}
 \usage{
 path_package(package, ...)
 }
@@ -15,6 +15,10 @@ path_package(package, ...)
 \code{path_package} differs from \code{\link[=system.file]{system.file()}} in that it always returns an
 error if the package does not exist. It also returns a different error if
 the file within the package does not exist.
+}
+\details{
+\code{path_package()} also automatically works with packages loaded with devtools
+even if the \code{path_package()} call comes from a different package.
 }
 \examples{
 path_package("base")

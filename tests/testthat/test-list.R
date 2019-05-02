@@ -8,9 +8,9 @@ describe("dir_ls", {
     })
 
     with_dir_tree(list("foo/bar" = "test"), {
-      expect_equal(dir_ls(recursive = TRUE), c("foo", "foo/bar"))
-      expect_equal(dir_ls(recursive = TRUE, type = "file"), "foo/bar")
-      expect_equal(dir_ls("./", recursive = TRUE), c("foo", "foo/bar"))
+      expect_equal(dir_ls(recurse = TRUE), c("foo", "foo/bar"))
+      expect_equal(dir_ls(recurse = TRUE, type = "file"), "foo/bar")
+      expect_equal(dir_ls("./", recurse = TRUE), c("foo", "foo/bar"))
       expect_equal(dir_ls("foo"), "foo/bar")
       expect_equal(dir_ls("foo/"), "foo/bar")
     })
@@ -19,8 +19,8 @@ describe("dir_ls", {
   it("Does not follow symbolic links", {
     with_dir_tree(list("foo/bar/baz" = "test"), {
       link_create(path_abs("foo"), "foo/bar/qux")
-      expect_equal(dir_ls(recursive = TRUE), c("foo", "foo/bar", "foo/bar/baz", "foo/bar/qux"))
-      expect_equal(dir_ls(recursive = TRUE, type = "symlink"), "foo/bar/qux")
+      expect_equal(dir_ls(recurse = TRUE), c("foo", "foo/bar", "foo/bar/baz", "foo/bar/qux"))
+      expect_equal(dir_ls(recurse = TRUE, type = "symlink"), "foo/bar/qux")
     })
   })
 
@@ -29,10 +29,10 @@ describe("dir_ls", {
         "foo/bar/baz" = "test",
         "foo/bar/test2" = "",
         "foo/bar/test3" = ""), {
-      expect_equal(dir_ls(recursive = TRUE, glob = "*baz"), "foo/bar/baz")
-      expect_equal(dir_ls(recursive = TRUE, regexp = "baz"), "foo/bar/baz")
-      expect_equal(dir_ls(recursive = TRUE, regexp = "[23]"), c("foo/bar/test2", "foo/bar/test3"))
-      expect_equal(dir_ls(recursive = TRUE, regexp = "(?<=a)z", perl = TRUE), "foo/bar/baz")
+      expect_equal(dir_ls(recurse = TRUE, glob = "*baz"), "foo/bar/baz")
+      expect_equal(dir_ls(recurse = TRUE, regexp = "baz"), "foo/bar/baz")
+      expect_equal(dir_ls(recurse = TRUE, regexp = "[23]"), c("foo/bar/test2", "foo/bar/test3"))
+      expect_equal(dir_ls(recurse = TRUE, regexp = "(?<=a)z", perl = TRUE), "foo/bar/baz")
     })
   })
 
@@ -58,6 +58,7 @@ describe("dir_ls", {
     })
   })
   it("works with UTF-8 encoded filenames", {
+    skip_on_cran()
     skip_on_os("solaris")
     with_dir_tree("\U7684\U6D4B\U8BD5\U6587\U4EF6", {
       file_create("fs\U7684\U6D4B\U8BD5\U6587\U4EF6.docx")
@@ -79,12 +80,12 @@ describe("dir_ls", {
         "foo2/bar/baz"), {
 
       file_chmod("foo", "a-r")
-      expect_error(dir_ls(".", recursive = TRUE), class = "EACCES")
-      expect_warning(dir_ls(fail = FALSE, recursive = TRUE), class = "EACCES")
+      expect_error(dir_ls(".", recurse = TRUE), class = "EACCES")
+      expect_warning(dir_ls(fail = FALSE, recurse = TRUE), class = "EACCES")
       file_chmod("foo", "a+r")
 
       file_chmod("foo2/bar", "a-r")
-      expect_warning(dir_ls("foo2", fail = FALSE, recursive = TRUE), class = "EACCES")
+      expect_warning(dir_ls("foo2", fail = FALSE, recurse = TRUE), class = "EACCES")
       file_chmod("foo2/bar", "a+r")
     })
   })
@@ -112,12 +113,12 @@ describe("dir_map", {
         "foo2/bar/baz"), {
 
       file_chmod("foo", "a-r")
-      expect_error(dir_map(".", fun = identity, recursive = TRUE), class = "EACCES")
-      expect_warning(dir_map(fail = FALSE, fun = identity, recursive = TRUE), class = "EACCES")
+      expect_error(dir_map(".", fun = identity, recurse = TRUE), class = "EACCES")
+      expect_warning(dir_map(fail = FALSE, fun = identity, recurse = TRUE), class = "EACCES")
       file_chmod("foo", "a+r")
 
       file_chmod("foo2/bar", "a-r")
-      expect_warning(dir_map("foo2", fail = FALSE, fun = identity, recursive = TRUE), class = "EACCES")
+      expect_warning(dir_map("foo2", fail = FALSE, fun = identity, recurse = TRUE), class = "EACCES")
       file_chmod("foo2/bar", "a+r")
     })
   })
@@ -162,12 +163,12 @@ describe("dir_walk", {
         "foo2/bar/baz"), {
 
       file_chmod("foo", "a-r")
-      expect_error(dir_walk(".", fun = identity, recursive = TRUE), class = "EACCES")
-      expect_warning(dir_walk(fail = FALSE, fun = identity, recursive = TRUE), class = "EACCES")
+      expect_error(dir_walk(".", fun = identity, recurse = TRUE), class = "EACCES")
+      expect_warning(dir_walk(fail = FALSE, fun = identity, recurse = TRUE), class = "EACCES")
       file_chmod("foo", "a+r")
 
       file_chmod("foo2/bar", "a-r")
-      expect_warning(dir_walk("foo2", fail = FALSE, fun = identity, recursive = TRUE), class = "EACCES")
+      expect_warning(dir_walk("foo2", fail = FALSE, fun = identity, recurse = TRUE), class = "EACCES")
       file_chmod("foo2/bar", "a+r")
     })
   })
@@ -193,12 +194,12 @@ describe("dir_info", {
         "foo2/bar/baz"), {
 
       file_chmod("foo", "a-r")
-      expect_error(dir_info(".", fun = identity, recursive = TRUE), class = "EACCES")
-      expect_warning(dir_info(fail = FALSE, fun = identity, recursive = TRUE), class = "EACCES")
+      expect_error(dir_info(".", fun = identity, recurse = TRUE), class = "EACCES")
+      expect_warning(dir_info(fail = FALSE, fun = identity, recurse = TRUE), class = "EACCES")
       file_chmod("foo", "a+r")
 
       file_chmod("foo2/bar", "a-r")
-      expect_warning(dir_info("foo2", fail = FALSE, fun = identity, recursive = TRUE), class = "EACCES")
+      expect_warning(dir_info("foo2", fail = FALSE, fun = identity, recurse = TRUE), class = "EACCES")
       file_chmod("foo2/bar", "a+r")
     })
   })

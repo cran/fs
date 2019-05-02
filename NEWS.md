@@ -1,3 +1,33 @@
+# fs 1.3.0
+
+## Breaking changes
+
+* `dir_ls()`, `dir_map()`, `dir_walk()`, `dir_info()` and `dir_tree()` gain a
+  `recurse` argument, which can be either a `TRUE` or `FALSE` (as was supported
+  previously) _or_ a number of levels to recurse. The previous argument
+  `recursive` has been deprecated.
+
+## New features
+
+* `dir_copy()` gains a `overwrite` argument, to overwrite a given directory
+  (@pasipasi123, #193)
+
+## Minor improvements and fixes
+
+* `dir_create()` now throws a more accurate error message when you try to
+  create a directory in a non-writeable location (#196).
+
+* `fs_path` objects now always show 10 characters by default when printed in
+  tibbles (#191).
+
+* `path_file()`, `path_dir()` and `path_ext()` now return normal character
+  vectors rather than tidy paths (#194).
+
+* `path_package()` now works with paths in development packages automatically
+  (#175).
+
+* tests now pass successfully when run in strict Latin-1 locale
+
 # fs 1.2.7
 
 ## New features
@@ -9,8 +39,8 @@
 * `dir_tree()` function added to print a command line representation of a
   directory tree, analogous to the unix `tree` program (#82).
 
-* Add a comparision vignette to quickly compare base R, fs and shell
-  alterantives (@xvrdm, #168).
+* Add a comparison vignette to quickly compare base R, fs and shell
+  alternatives (@xvrdm, #168).
 
 ## Minor improvements and fixes
 
