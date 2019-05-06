@@ -1,3 +1,9 @@
+# fs 1.3.1
+
+* Fix missed test with UTF-8 characters, which now passes on a strict Latin-1 locale.
+
+* Fix undefined behavior when casting -1 to `size_t`.
+
 # fs 1.3.0
 
 ## Breaking changes
