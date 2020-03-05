@@ -1,10 +1,10 @@
 #' Create files, directories, or links
 #'
-#' These functions ensure that `path` exists; if it already exists it will
-#' be left unchanged. That means that compared to [file.create()],
-#' `file_create()` will not truncate an existing file, and compared to
-#' [dir.create()], `dir_create()` will silently ignore
-#' existing directories.
+#' The functions `file_create()` and `dir_create()` ensure that `path` exists;
+#' if it already exists it will be left unchanged. That means that compared to
+#' [file.create()], `file_create()` will not truncate an existing file, and
+#' compared to [dir.create()], `dir_create()` will silently ignore existing
+#' directories.
 #'
 #' @template fs
 #' @param mode If file/directory is created, what mode should it have?
@@ -58,9 +58,14 @@ dir_create <- function(path, ..., mode = "u=rwx,go=rx", recurse = TRUE, recursiv
   mode <- as_fs_perms(mode)
   new <- path_expand(path(path, ...))
 
+  if (!isTRUE(recurse)) {
+    mkdir_(path, mode)
+    return(invisible(path_tidy(path)))
+  }
+
   paths <- path_split(new)
   for (p in paths) {
-    if (length(p) == 1 || !isTRUE(recurse)) {
+    if (length(p) == 1) {
       mkdir_(p, mode)
     } else {
       p_paths <- Reduce(get("path", mode = "function"), p, accumulate = TRUE)

@@ -40,6 +40,21 @@ describe("path", {
     # This could be a UNC path, so we keep the doubled path.
     expect_equal(path("//", "foo"), "//foo")
   })
+
+  it("errors on paths which are too long", {
+    expect_error(path(paste(rep("a", 100000), collapse = "")), "less than PATH_MAX")
+
+    expect_error(do.call(path, as.list(rep("a", 100000))), "less than PATH_MAX")
+  })
+
+  it("follows recycling rules", {
+    expect_equal(path("foo", character()), character())
+    expect_equal(path("foo", "bar"), "foo/bar")
+    expect_equal(path("foo", c("bar", "baz")), c("foo/bar", "foo/baz"))
+    expect_equal(path(c("foo", "qux"), c("bar", "baz")), c("foo/bar", "qux/baz"))
+
+    expect_error(path(c("foo", "qux", "foo2"), c("bar", "baz")), "arguments must have consistent lengths", class = "invalid_argument")
+  })
 })
 
 describe("path_wd", {
@@ -286,6 +301,10 @@ describe("path_ext_set", {
     expect_equal(path_ext_set("foo", "bar"), "foo.bar")
     expect_equal(path_ext_set("foo", ".bar"), "foo.bar")
   })
+  it ("works with multiple paths (#205)", {
+    multiple_paths <- c("a", "b")
+    expect_equal(path_ext_set(multiple_paths, "csv"), c("a.csv", "b.csv"))
+  })
   it ("works with non-ASCII inputs", {
     skip_if_not_utf8()
 
@@ -449,6 +468,8 @@ describe("path_rel", {
   })
 
   it("can be reversed by path_abs", {
+    skip_on_os("windows")
+
     f <- file_temp()
     expect_equal(path_abs(path_rel(f)), f)
 

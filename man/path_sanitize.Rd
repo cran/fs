@@ -12,7 +12,7 @@ path_sanitize(filename, replacement = "")
 \item{replacement}{A character vector used to replace invalid characters.}
 }
 \description{
-\code{path_file_sanitize()} removes the following:
+\code{path_sanitize()} removes the following:
 \itemize{
 \item \href{https://en.wikipedia.org/wiki/C0_and_C1_control_codes}{Control characters}
 \item \href{https://kb.acronis.com/content/39790}{Reserved characters}
@@ -26,7 +26,7 @@ The resulting string is then truncated to \href{https://en.wikipedia.org/wiki/Co
 }
 \examples{
 # potentially unsafe string
-str <- "~/.\\u0001ssh/authorized_keys"
+str <- "~/.\u0001ssh/authorized_keys"
 path_sanitize(str)
 
 path_sanitize("..")

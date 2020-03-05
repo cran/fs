@@ -118,7 +118,8 @@ List stat_(CharacterVector path, bool fail) {
 
   SET_STRING_ELT(names, 9, Rf_mkChar("size"));
   SET_VECTOR_ELT(out, 9, Rf_allocVector(REALSXP, n));
-  Rf_classgets(VECTOR_ELT(out, 9), Rf_mkString("fs_bytes"));
+  Rf_classgets(
+      VECTOR_ELT(out, 9), Rcpp::CharacterVector::create("fs_bytes", "numeric"));
 
   SET_STRING_ELT(names, 10, Rf_mkChar("block_size"));
   SET_VECTOR_ELT(out, 10, Rf_allocVector(REALSXP, n));
@@ -261,7 +262,7 @@ List stat_(CharacterVector path, bool fail) {
     uv_fs_req_cleanup(&req);
   }
   out.attr("names") = names;
-  out.attr("class") = CharacterVector::create("tbl", "tbl_df", "data.frame");
+  out.attr("class") = CharacterVector::create("data.frame");
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -i);
 
   return out;
