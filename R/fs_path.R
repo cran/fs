@@ -53,6 +53,11 @@ print.fs_path <- function(x, ..., max = getOption("max.print")) {
 }
 
 #' @export
+`[[.fs_path` <- function(x, i) {
+  new_fs_path(NextMethod("["))
+}
+
+#' @export
 `/.fs_path` <- function(e1, e2) {
   path(e1, e2)
 }
@@ -128,7 +133,7 @@ colourise_fs_path <- function(x, ..., colors = Sys.getenv("LS_COLORS", gnu_ls_de
   res <- character(length(x))
 
   for (i in seq_along(x)) {
-    code <- map[file_code_(x[[i]], perms[[i]])]
+    code <- map[.Call(file_code_, x[[i]], as.integer(perms[[i]]))]
     if (is.na(code)) {
       code <- file_types[na.omit(tools::file_ext(x[[i]]))]
     }

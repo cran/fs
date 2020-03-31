@@ -45,7 +45,7 @@
 file_info <- function(path, fail = TRUE, follow = FALSE) {
   old <- path_expand(path)
 
-  res <- stat_(old, fail)
+  res <- .Call(stat_, old, fail)
 
   res$path <- path_tidy(path)
 
@@ -124,7 +124,7 @@ file_chmod <- function(path, mode) {
 
   old <- path_expand(path)
 
-  chmod_(old, mode)
+  .Call(chmod_, old, as.integer(mode))
 
   invisible(path_tidy(path))
 }
@@ -150,14 +150,14 @@ file_chown <- function(path, user_id = NULL, group_id = NULL) {
   }
 
   if (is.character(user_id)) {
-    user_id <- getpwnam_(user_id)
+    user_id <- .Call(getpwnam_, user_id)
   }
 
   if (is.character(group_id)) {
-    group_id <- getgrnam_(group_id)
+    group_id <- .Call(getgrnam_, group_id)
   }
 
-  chown_(old, user_id, group_id)
+  .Call(chown_, old, as.integer(user_id), as.integer(group_id))
 
   invisible(path_tidy(path))
 }
@@ -217,7 +217,7 @@ file_move <- function(path, new_path) {
 
   new[is_directory] <- path(new[is_directory], basename(old))
 
-  move_(old, new)
+  .Call(move_, old, new)
 
   invisible(path_tidy(new))
 }
@@ -246,8 +246,8 @@ file_touch <- function(path, access_time = Sys.time(), modification_time = acces
 
   path <- path_expand(path)
 
-  create_(path, 420)
-  touch_(path, access_time, modification_time)
+  .Call(create_, path, 420L)
+  .Call(touch_, path, access_time, modification_time)
 
   invisible(path_tidy(path))
 }

@@ -60,12 +60,12 @@ NULL
 #' path("foo", letters[1:3], ext = "txt")
 path <- function(..., ext = "") {
   args <- list(...)
-  assert_recycleable(args)
+  assert_recyclable(args)
 
-  path_tidy(path_(lapply(args, function(x) enc2utf8(as.character(x))), ext))
+  path_tidy(.Call(path_, lapply(args, function(x) enc2utf8(as.character(x))), ext))
 }
 
-assert_recycleable <- function(x) {
+assert_recyclable <- function(x) {
   if (length(x) == 0) {
     return()
   }
@@ -73,7 +73,7 @@ assert_recycleable <- function(x) {
   max_len <- max(len)
   different <- which(len != 0 & len != max_len)
   assert(
-    "path() arguments must have consistent lengths, only values of length one are recycled.",
+    "Arguments must have consistent lengths, only values of length one are recycled.",
     all(len[different] == 1)
   )
 }
@@ -101,13 +101,13 @@ path_real <- function(path) {
   exists <- file_exists(path) == TRUE
 
   # Realize all paths which fully exist
-  old[!is_missing & exists] <- realize_(old[!is_missing & exists])
+  old[!is_missing & exists] <- .Call(realize_, old[!is_missing & exists])
 
   # Handle paths which only partially exist
   realize_one <- function(splits) {
     paths <- Reduce(fs::path, splits, accumulate = TRUE)
     last_link <- which.max(is_link(paths))
-    path(realize_(paths[last_link]), path_join(splits[seq(last_link + 1, length(splits))]))
+    path(.Call(realize_, paths[last_link]), path_join(splits[seq(last_link + 1, length(splits))]))
   }
 
   partial <- !is_missing & !exists
@@ -129,7 +129,7 @@ path_real <- function(path) {
 #' @export
 path_tidy <- function(path) {
   path <- as.character(path)
-  new_fs_path(tidy_(path))
+  new_fs_path(.Call(tidy_, path))
 }
 
 
@@ -156,7 +156,7 @@ path_join <- function(parts) {
     return(path_tidy(""))
   }
   if (is.character(parts)) {
-    return(path_tidy(path_(enc2utf8(parts), "")))
+    return(path_tidy(.Call(path_, as.list(enc2utf8(parts)), "")))
   }
   path_tidy(vapply(parts, path_join, character(1)))
 }
@@ -304,7 +304,7 @@ path_expand <- function(path) {
   path <- enc2utf8(path)
 
   # We use the windows implementation if R_FS_HOME is set or if on windows
-  path_tidy(expand_(path, Sys.getenv("R_FS_HOME") != "" || is_windows()))
+  path_tidy(.Call(expand_, path, Sys.getenv("R_FS_HOME") != "" || is_windows()))
 }
 
 #' @rdname path_expand
@@ -313,7 +313,7 @@ path_expand_r <- function(path) {
   path <- enc2utf8(path)
 
   # Unconditionally use R_ExpandFileName
-  path_tidy(expand_(path, FALSE))
+  path_tidy(.Call(expand_, path, FALSE))
 }
 
 #' @rdname path_expand
@@ -401,14 +401,23 @@ path_ext_remove <- function(path) {
 #' @rdname path_file
 #' @export
 path_ext_set <- function(path, ext) {
+
+  if (!(length(ext) == length(path) || length(ext) == 1)) {
+    assert_recyclable(list(path, ext))
+  }
+
   # Remove a leading . if present
   ext <- sub("[.]", "", ext)
 
   has_ext <- nzchar(ext)
   to_set <- !is.na(path) & has_ext
 
+  if (length(ext) == 1) {
+    ext <- rep(ext, sum(to_set))
+  }
+
   path[to_set] <- paste0(
-    path_ext_remove(path[to_set]), ".", rep(ext, sum(to_set))
+    path_ext_remove(path[to_set]), ".", ext
   )
 
   path_tidy(path)
@@ -491,5 +500,19 @@ path_has_parent <- function(path, parent) {
   path <- path_abs(path)
   parent <- path_abs(parent)
 
-  identical(path_common(c(path, parent)), parent)
+  res <- logical(length(path))
+
+  assert_recyclable(list(path, parent))
+  if (length(path) == 1) {
+    path <- rep(path, length(parent))
+  }
+
+  if (length(parent) == 1) {
+    parent <- rep(parent, length(path))
+  }
+
+  for (i in seq_along(path)) {
+    res[[i]] <- identical(as.character(path_common(c(path[[i]], parent[[i]]))), as.character(parent[[i]]))
+  }
+  res
 }

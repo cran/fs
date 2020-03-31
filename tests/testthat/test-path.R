@@ -53,7 +53,7 @@ describe("path", {
     expect_equal(path("foo", c("bar", "baz")), c("foo/bar", "foo/baz"))
     expect_equal(path(c("foo", "qux"), c("bar", "baz")), c("foo/bar", "qux/baz"))
 
-    expect_error(path(c("foo", "qux", "foo2"), c("bar", "baz")), "arguments must have consistent lengths", class = "invalid_argument")
+    expect_error(path(c("foo", "qux", "foo2"), c("bar", "baz")), "Arguments must have consistent lengths", class = "invalid_argument")
   })
 })
 
@@ -305,6 +305,13 @@ describe("path_ext_set", {
     multiple_paths <- c("a", "b")
     expect_equal(path_ext_set(multiple_paths, "csv"), c("a.csv", "b.csv"))
   })
+  it ("works with multiple extensions (#250)", {
+    multiple_paths <- c("a", "b")
+    multiple_exts <- c("csv", "tsv")
+    expect_equal(path_ext_set(multiple_paths, multiple_exts), c("a.csv", "b.tsv"))
+
+    expect_error(path_ext_set(multiple_paths, c(multiple_exts, "xls")), class = "fs_error", "consistent lengths")
+  })
   it ("works with non-ASCII inputs", {
     skip_if_not_utf8()
 
@@ -417,13 +424,22 @@ describe("path_common", {
 })
 
 describe("path_has_parent", {
-  expect_false(path_has_parent("foo", "bar"))
-  expect_false(path_has_parent("foo", "foo/bar"))
+  it("works on single paths", {
+    expect_false(path_has_parent("foo", "bar"))
+    expect_false(path_has_parent("foo", "foo/bar"))
 
-  expect_false(path_has_parent("/usr/var2/log", "/usr/var"))
+    expect_false(path_has_parent("/usr/var2/log", "/usr/var"))
 
-  expect_true(path_has_parent("foo/bar", "foo"))
-  expect_true(path_has_parent("path/myfiles/myfile", "path/to/files/../../myfiles"))
+    expect_true(path_has_parent("foo/bar", "foo"))
+    expect_true(path_has_parent("path/myfiles/myfile", "path/to/files/../../myfiles"))
+  })
+  it("works with multiple paths", {
+    expect_equal(path_has_parent(c("/a/b/c", "x/y"), "/a/b"), c(TRUE, FALSE))
+
+    expect_equal(path_has_parent("/a/b/c", c("/a/b", "/x/y")), c(TRUE, FALSE))
+
+    expect_error(path_has_parent(c("/a/b/c", "x/y"), c("/a/b", "x/y", "foo/bar")), "consistent lengths", class = "invalid_argument")
+  })
 })
 
 # derived from https://github.com/python/cpython/blob/6f0eb93183519024cb360162bdd81b9faec97ba6/Lib/test/test_posixpath.py#L483
