@@ -1,6 +1,6 @@
 Package: fs
 Title: Cross-Platform File System Operations Based on 'libuv'
-Version: 1.4.0
+Version: 1.4.1
 Authors@R: c(
     person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Hadley", "Wickham", , "hadley@rstudio.com", "aut"),
@@ -26,7 +26,7 @@ Suggests: testthat, covr, pillar (>= 1.0.0), tibble (>= 1.1.0), crayon,
 VignetteBuilder: knitr
 Language: en-US
 NeedsCompilation: yes
-Packaged: 2020-03-30 21:09:47 UTC; jhester
+Packaged: 2020-04-01 16:47:51 UTC; jhester
 Author: Jim Hester [aut, cre],
   Hadley Wickham [aut],
   libuv project contributors [cph] (libuv library),
@@ -34,4 +34,4 @@ Author: Jim Hester [aut, cre],
   RStudio [cph, fnd]
 Maintainer: Jim Hester <james.f.hester@gmail.com>
 Repository: CRAN
-Date/Publication: 2020-03-31 15:00:14 UTC
+Date/Publication: 2020-04-04 00:30:02 UTC
