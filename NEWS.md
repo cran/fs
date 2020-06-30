@@ -1,4 +1,12 @@
+# fs 1.4.2
+
+* `dir_map()` now grows its internal list safely, the 1.4.0 release introduced an unsafe regression (#268)
+
+* `file_info()` returns a tibble if the tibble package is installed, and subsets work when it is a `data.frame` (#265)
+
 # fs 1.4.1
+
+* Fix compilation on Solaris.
 
 # fs 1.4.0
 
