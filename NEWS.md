@@ -1,3 +1,20 @@
+# fs 1.5.1
+
+* Gábor Csárdi is now the maintainer.
+
+* fs is now licensed as MIT (#301).
+
+* `dir_create()` now restores the previous umask (#293)
+
+* `file_exists()` is now much faster (#295)
+
+* `options(fs.fs_path.shorten)` can now be used to control how paths are shortened in tibbles.
+  The default value is "front", valid alternatives are "back", "middle" and "abbreviate". (#335)
+
+* `options(fs.use_tibble = FALSE)` can now be used to disable use of tibbles (#295).
+
+* `path_tidy()` now works with non-UTF8 encoded paths (@shrektan, #321).
+
 # fs 1.5.0
 
 * The libuv release used by fs was updated to 1.38.1
