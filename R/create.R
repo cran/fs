@@ -6,7 +6,8 @@
 #' compared to [dir.create()], `dir_create()` will silently ignore existing
 #' directories.
 #'
-#' @template fs
+#' @param path A character vector of one or more paths. For `link_create()`, 
+#'   this is the target.
 #' @param mode If file/directory is created, what mode should it have?
 #'
 #'   Links do not have mode; they inherit the mode of the file they link to.
@@ -41,7 +42,7 @@ file_create <- function(path, ..., mode = "u=rw,go=r") {
   new <- path_expand(path(path, ...))
 
   .Call(fs_create_, new, as.integer(mode))
-  invisible(path_tidy(path))
+  invisible(path_tidy(new))
 }
 
 #' @export
@@ -59,8 +60,8 @@ dir_create <- function(path, ..., mode = "u=rwx,go=rx", recurse = TRUE, recursiv
   new <- path_expand(path(path, ...))
 
   if (!isTRUE(recurse)) {
-    .Call(fs_mkdir_, path, as.integer(mode))
-    return(invisible(path_tidy(path)))
+    .Call(fs_mkdir_, new, as.integer(mode))
+    return(invisible(path_tidy(new)))
   }
 
   paths <- path_split(new)
@@ -76,7 +77,7 @@ dir_create <- function(path, ..., mode = "u=rwx,go=rx", recurse = TRUE, recursiv
     }
   }
 
-  invisible(path_tidy(path))
+  invisible(path_tidy(new))
 }
 
 #' @export

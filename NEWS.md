@@ -1,3 +1,13 @@
+# fs 1.5.2
+
+* `file_create()` and `dir_create()` now return the correct path when `...` arguments are used (@davidchall, #333).
+
+* `dir_create(recurse = FALSE)` now correctly handles `...` arguments (@davidchall, #333).
+
+* `file_exists()` now expands `~` again (#325).
+
+* `dir_copy()` works when `path` has length >1 (#360).
+
 # fs 1.5.1
 
 * Gábor Csárdi is now the maintainer.

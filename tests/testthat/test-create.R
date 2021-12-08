@@ -20,6 +20,28 @@ test_that("dir_create works with new and existing files", {
   unlink(x1, recursive = TRUE)
 })
 
+test_that("file_create works with multiple path arguments", {
+  x1 <- file_create(tempdir(), "foo")
+
+  expect_equal(x1, path(tempdir(), "foo"))
+  expect_true(file_exists(x1))
+
+  unlink(x1)
+})
+
+test_that("dir_create works with multiple path arguments", {
+  x1 <- dir_create(tempdir(), "foo", "bar")
+  x2 <- dir_create(tempdir(), "foo", "baz", recurse = FALSE)
+
+  expect_equal(x1, path(tempdir(), "foo", "bar"))
+  expect_equal(x2, path(tempdir(), "foo", "baz"))
+  expect_true(dir_exists(x1))
+  expect_true(dir_exists(x2))
+
+  unlink(x1)
+  unlink(x2)
+})
+
 test_that("dir_create sets the mode properly", {
   skip_on_cran()
   skip_on_os("windows")
@@ -49,6 +71,7 @@ test_that("dir_create fails silently if the directory or link exists and fails i
 test_that("dir_create fails with EACCES if it cannot create the directory", {
   skip_on_os("windows")
   skip_on_cran()
+  if (Sys.info()[["effective_user"]] == "root") skip("root user")
 
   with_dir_tree("foo", {
     # Set current directly as read-only
