@@ -109,7 +109,11 @@ extern "C" SEXP fs_stat_(SEXP path, SEXP fail_sxp) {
 
   SET_STRING_ELT(names, 3, Rf_mkChar("permissions"));
   SET_VECTOR_ELT(out, 3, Rf_allocVector(INTSXP, n));
-  Rf_classgets(VECTOR_ELT(out, 3), Rf_mkString("fs_perms"));
+  SEXP class_perm_sxp = PROTECT(Rf_allocVector(STRSXP, 2));
+  SET_STRING_ELT(class_perm_sxp, 0, Rf_mkChar("fs_perms"));
+  SET_STRING_ELT(class_perm_sxp, 1, Rf_mkChar("integer"));
+  Rf_classgets(VECTOR_ELT(out, 3), class_perm_sxp);
+  UNPROTECT(1);
 
   SET_STRING_ELT(names, 4, Rf_mkChar("hard_links"));
   SET_VECTOR_ELT(out, 4, Rf_allocVector(REALSXP, n));
@@ -236,7 +240,7 @@ extern "C" SEXP fs_stat_(SEXP path, SEXP fail_sxp) {
       SET_STRING_ELT(VECTOR_ELT(out, 5), i, Rf_mkCharCE(pwd->pw_name, CE_UTF8));
     } else {
       char buf[20];
-      sprintf(buf, "%" PRIu64, st.st_uid);
+      snprintf(buf, sizeof(buf), "%" PRIu64, st.st_uid);
       SET_STRING_ELT(VECTOR_ELT(out, 5), i, Rf_mkCharCE(buf, CE_UTF8));
     }
 #endif
@@ -249,7 +253,7 @@ extern "C" SEXP fs_stat_(SEXP path, SEXP fail_sxp) {
       SET_STRING_ELT(VECTOR_ELT(out, 6), i, Rf_mkCharCE(grp->gr_name, CE_UTF8));
     } else {
       char buf[20];
-      sprintf(buf, "%" PRIu64, st.st_gid);
+      snprintf(buf, sizeof(buf), "%" PRIu64, st.st_gid);
       SET_STRING_ELT(VECTOR_ELT(out, 6), i, Rf_mkCharCE(buf, CE_UTF8));
     }
 #endif
@@ -298,7 +302,7 @@ extern "C" SEXP fs_exists_(SEXP path_sxp, SEXP name_sxp) {
     uv_fs_t req;
     const char* p = CHAR(STRING_ELT(path_sxp, i));
     int res = uv_fs_stat(uv_default_loop(), &req, p, NULL);
-    LOGICAL(out)[i] = res == 0;
+    LOGICAL(out)[i] = static_cast<int>(res == 0);
     uv_fs_req_cleanup(&req);
   }
 
