@@ -1,5 +1,3 @@
-# Use C++11 if available, so we have C99 support for variadic macros
-CXX_STD=CXX11
 
 LIBUV := libuv-1.44.2
 
@@ -21,7 +19,7 @@ $(SHLIB): $(LIBUV)/libuv.a
 
 $(LIBUV)/libuv.a:
 	$(MAKE) --directory=$(LIBUV) -f Makefile.mingw \
-		CC="$(CC)" CFLAGS="$(CFLAGS) $(LIBUV_CFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" \
+		CC="$(CC)" CFLAGS="$(CFLAGS) $(LIBUV_CFLAGS) $(CPICFLAGS) $(C_VISIBILITY) -std=gnu11" AR="$(AR)" RANLIB="$(RANLIB)" \
 		HAVE_DTRACE=0
 
 .PHONY: shlib-clean clean

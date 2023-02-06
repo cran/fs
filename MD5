@@ -1,7 +1,7 @@
-52b9cb89f94f92d15c9e237b2d84f734 *DESCRIPTION
+97909073d0e7beaeba91c50f82131c7e *DESCRIPTION
 3ffc85dd0f0c7e28772f084d80de9b90 *LICENSE
 6841add089b062bc6ca89fb381630791 *NAMESPACE
-b5cecdc352ba5f43701003ac9bc345bb *NEWS.md
+4a60eab3aaf250e56d2bfab11e33e826 *NEWS.md
 854d2cce24428f73164068fcc5285242 *R/access.R
 2ff348e2b68a60aa4ba601d2da967855 *R/copy.R
 28d5541139b0ba7d8d3700d3a1745568 *R/create.R
@@ -61,8 +61,8 @@ f09771014dfe119a1bba662804e8fc66 *man/path_package.Rd
 d5be73920473915802a0b2473179ccc1 *man/path_sanitize.Rd
 0874250c7728b393f66bc37c9a9d53b6 *man/path_tidy.Rd
 df7b0960644a18b0912677fe7e2e7a3f *src/CollectorList.h
-77e357b9b0d19e1085f0fd9e5793b589 *src/Makevars
-a92a7115c9d2014a2496b79e95a62eeb *src/Makevars.win
+c162f0adb4d0bb4bfddde25d75c3dd22 *src/Makevars
+dea253cfc274fb9a319c0afb8fbb3904 *src/Makevars.win
 fe39413e18a99f3c72a94b4c1f3cc673 *src/bsd/cdefs.h
 bda75108ccd90307e711122f43c2959b *src/bsd/reallocarray.c
 e1483c1b071eeeac79d0cb7bf2e7bf76 *src/bsd/setmode.c
