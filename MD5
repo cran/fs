@@ -1,7 +1,7 @@
-97909073d0e7beaeba91c50f82131c7e *DESCRIPTION
+20fcd97cac15e42090b41923ddc8e2ac *DESCRIPTION
 3ffc85dd0f0c7e28772f084d80de9b90 *LICENSE
 6841add089b062bc6ca89fb381630791 *NAMESPACE
-4a60eab3aaf250e56d2bfab11e33e826 *NEWS.md
+d936fe3f863addcc4f2fd371e5d66e5b *NEWS.md
 854d2cce24428f73164068fcc5285242 *R/access.R
 2ff348e2b68a60aa4ba601d2da967855 *R/copy.R
 28d5541139b0ba7d8d3700d3a1745568 *R/create.R
@@ -16,7 +16,7 @@ beed94e72fc9db357a1c32d152daeac8 *R/is.R
 99f766fa4b6ae3dc85d94ec6badf6b18 *R/link.R
 7e110bdf9c46ac1c11f7cb434eca9044 *R/list.R
 0cef13d805c8772f6b7a8cc75d202a77 *R/package.R
-e4068a35e804d9a03a5e1b0712f91416 *R/path.R
+347655b947b1bb8f2eead5d4ab4b6d9e *R/path.R
 4c4af8027bf434494216463aa37a09ba *R/path_package.R
 9e15dab410936afe95cc33c671712b74 *R/sanitize.R
 730145ad2ec47b40fb080e5f45309d01 *R/temp.R
@@ -24,7 +24,7 @@ e4068a35e804d9a03a5e1b0712f91416 *R/path.R
 895e2bf91e23e15512401b22af6004ac *R/utils.R
 ed6fd81cda9ea020919809665c802de3 *R/zzz.R
 a2443b26491aa266856c7500cbb5361e *README.md
-21b5178141afe8281f394d4b7234d995 *build/vignette.rds
+aafa246af793b224965a25b61026bb3b *build/vignette.rds
 5fcd953251f2c11c4fc781136e03c468 *cleanup
 850ce67aeafb4c93a45579e70657e209 *inst/COPYRIGHTS
 e6738eadbfb73f688621a14cbc7c7ade *inst/WORDLIST
@@ -72,7 +72,7 @@ e1483c1b071eeeac79d0cb7bf2e7bf76 *src/bsd/setmode.c
 a71c1eb3016d80ce5394f4e6002bb685 *src/dir.cc
 0feb0883dccdf9d4e14849a179c71bf5 *src/error.cc
 3fa3432d7a3304b6c0039d2169fc6a8b *src/error.h
-fbe2afca5725797099b385c4c892d643 *src/file.cc
+f438c062d1570f783312cfc0033824df *src/file.cc
 f88da5e8d832abaf2715b6e5601ec7c5 *src/fs.cc
 5c502d02f7f0b85f571851bb39e0c64a *src/getmode.cc
 8778e72043f142e28a7e36527cf8f093 *src/getmode.h
@@ -429,13 +429,13 @@ abfdc8199c1cc82280140c8345032746 *tests/testthat/test-create.R
 11d3fc81e232fcf65b8f25ba4f9912e1 *tests/testthat/test-file.R
 9144d90cd85f032c19666070fb715742 *tests/testthat/test-file_exists.R
 1a5856a6c26939a17e34a79cdd8b2f75 *tests/testthat/test-fs_bytes.R
-be7b98c4786085641ac17acf789cd2cc *tests/testthat/test-fs_path.R
+8dc4e461b9877baa0d7e0df2499bddc6 *tests/testthat/test-fs_path.R
 8cf9ef33049122a9555907aa1f3fdc65 *tests/testthat/test-fs_perms.R
 61f2726f24664e666de15657ff4ab85e *tests/testthat/test-id.R
 2524bbad8304b19bd57e75e0e4575702 *tests/testthat/test-is.R
 f1962b5ea77460d775028ae3d1a2b7f1 *tests/testthat/test-link.R
 9165aff9b9a8a8edb9b1540122b389de *tests/testthat/test-list.R
-903f288f4b79d0f5d8b341bf3484adf5 *tests/testthat/test-path.R
+f19f88ed4fd51fdcb2d619822d71bd71 *tests/testthat/test-path.R
 7cf7b6d5d0071222ba1bd4b7cd5bf89c *tests/testthat/test-path_package.R
 30942d81608afebea073612e4ebfe7de *tests/testthat/test-sanitize.R
 82af092ec858bf6792104157393fbdc2 *tests/testthat/test-temp.R
