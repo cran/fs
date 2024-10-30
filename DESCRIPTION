@@ -1,6 +1,6 @@
 Package: fs
 Title: Cross-Platform File System Operations Based on 'libuv'
-Version: 1.6.4
+Version: 1.6.5
 Authors@R: c(
     person("Jim", "Hester", role = "aut"),
     person("Hadley", "Wickham", , "hadley@posit.co", role = "aut"),
@@ -30,7 +30,7 @@ Language: en-US
 RoxygenNote: 7.2.3
 SystemRequirements: GNU make
 NeedsCompilation: yes
-Packaged: 2024-04-25 11:57:22 UTC; gaborcsardi
+Packaged: 2024-10-28 22:30:40 UTC; gaborcsardi
 Author: Jim Hester [aut],
   Hadley Wickham [aut],
   Gábor Csárdi [aut, cre],
@@ -39,4 +39,4 @@ Author: Jim Hester [aut],
   Posit Software, PBC [cph, fnd]
 Maintainer: Gábor Csárdi <csardi.gabor@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-04-25 12:50:02 UTC
+Date/Publication: 2024-10-30 08:40:02 UTC
