@@ -1,7 +1,7 @@
-7a7b201f33c95869f3f7f99af72547f8 *DESCRIPTION
+b336f849caf2fd72d05b6d323256ebc5 *DESCRIPTION
 63a9f7bdcdf829164b16c934bf7a1866 *LICENSE
 6841add089b062bc6ca89fb381630791 *NAMESPACE
-abe3b04417b6fa320014ad504d95fb98 *NEWS.md
+2854587e91d61f12fa06f467240abc6b *NEWS.md
 854d2cce24428f73164068fcc5285242 *R/access.R
 2ff348e2b68a60aa4ba601d2da967855 *R/copy.R
 28d5541139b0ba7d8d3700d3a1745568 *R/create.R
@@ -23,8 +23,8 @@ beed94e72fc9db357a1c32d152daeac8 *R/is.R
 959333ee59316e8ad1d759cdfbda3403 *R/tree.R
 895e2bf91e23e15512401b22af6004ac *R/utils.R
 ed6fd81cda9ea020919809665c802de3 *R/zzz.R
-95fb99e630d16c571bc3fd150a8b54f5 *README.md
-80e8bcd5511a50a4f9d4d24b768fabb6 *build/vignette.rds
+31067a9b468d02d4910b3bddbb1b2b52 *README.md
+65a78e7d4a9c89cc3228f1e40bd2fb9b *build/vignette.rds
 5fcd953251f2c11c4fc781136e03c468 *cleanup
 850ce67aeafb4c93a45579e70657e209 *inst/COPYRIGHTS
 c3cf799d11d9ccff4e7a2b8b201e7a84 *inst/WORDLIST
@@ -62,8 +62,8 @@ f09771014dfe119a1bba662804e8fc66 *man/path_package.Rd
 72d64e95de61c1849af6e7a444d9f5f0 *man/path_sanitize.Rd
 0874250c7728b393f66bc37c9a9d53b6 *man/path_tidy.Rd
 0ac6eaa0745be8c4095f8f7beb058774 *src/CollectorList.h
-967cd89d512708289547b8de2533e587 *src/Makevars
-dea253cfc274fb9a319c0afb8fbb3904 *src/Makevars.win
+1bc17182c6ff0583387b8731c7979d29 *src/Makevars
+1c7936c748257fc735cfafd98272e905 *src/Makevars.win
 fe39413e18a99f3c72a94b4c1f3cc673 *src/bsd/cdefs.h
 bda75108ccd90307e711122f43c2959b *src/bsd/reallocarray.c
 e1483c1b071eeeac79d0cb7bf2e7bf76 *src/bsd/setmode.c
